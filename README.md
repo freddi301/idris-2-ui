@@ -1,0 +1,1 @@
+pack --cg javascript build browser.ipkg

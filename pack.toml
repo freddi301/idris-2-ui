@@ -1,0 +1,10 @@
+[custom.all.idris-view-demo-1]
+type = "local"
+path = "."
+ipkg = "idris-view-demo-1.ipkg"
+test = "test/test.ipkg"
+
+[custom.all.idris-view-demo-1-test]
+type = "local"
+path = "test"
+ipkg = "test.ipkg"
