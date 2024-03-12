@@ -1,7 +1,7 @@
 package idris-view-demo-1
 version = 0.1.0
 
-main = Demo10
+main = Demo16.Usage
 
 executable = "index.html"
 sourcedir = "src"
