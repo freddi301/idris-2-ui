@@ -84,3 +84,28 @@ namespace StateBuilderProve
     Return $ setY 33
 
   e4e = runNext e4 [] (runInit e4)
+
+  record UseDoubleCounter setRet where
+    constructor MakeUseDoubleCounter
+    countX : Int
+    countY : Int
+    incX : setRet
+    incY : setRet
+
+
+  useDoubleCounter : {default 1 stepX : Int} -> {default 1 stepY : Int} -> StateBuilder left ?udch5 setRet (UseDoubleCounter setRet)
+  useDoubleCounter = do
+    (countX, setCountX) <- the Int 0
+    (countY, setCountY) <- the Int 0
+    Return $ MakeUseDoubleCounter {
+      countX = countX,
+      incX = setCountX $ countX + stepX,
+      countY = countY,
+      incY = setCountY $ countY + stepY
+    }
+    
+  -- e5 : StateBuilder ?e5h4 ?e5h5 ?e5h9 ?e5h7
+  -- e5 = do
+  --   dc1 <- useDoubleCounter
+  --   dc2 <- useDoubleCounter
+  --   Return $ dc1.countX + dc2.countY

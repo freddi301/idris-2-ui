@@ -2,7 +2,6 @@ module Demo17
 
 mutual 
 
-
   data Tree : Type where
     Leaf : String -> Tree
     Branch : List Tree -> Tree
@@ -23,7 +22,7 @@ append (h :: t) v = h :: (append t v)
 e1 : Tree
 e1 = Leaf "Hello"
 
-[Counter] Component Int where
+[Counter] { default 1 step : Int } -> Component Int where
   initial = 0
   render state update = Leaf (show state)
 
@@ -40,8 +39,8 @@ e3 = Branch [
   initial = ""
   render state udpate = Branch [
     Leaf state,
-    Instance Counter,
-    Instance Counter
+    Instance $ Counter { step = 2 },
+    Instance $ Counter
   ]
 
 renderTree : (Tree -> Tree) -> Tree -> Tree
