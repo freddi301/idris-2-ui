@@ -67,8 +67,8 @@ implementContextInterface identity state = declare [
   ]
 
 %macro
-createState : {state : Type} -> state -> Elab (StateFacade state)
-createState {state} initial = do
+useState : {state : Type} -> state -> Elab (StateFacade state)
+useState {state} initial = do
   quotedInitial <- quote initial
   identity <- getIdentity (getFC quotedInitial)
   implementContextInterface identity state
@@ -99,12 +99,10 @@ recordContext = createContext Int
 
 Counter : {default 1 step : Int} -> View
 Counter = do
-  (count, setCount) <- createState (the Double 0)
-  (count2, setCount2) <- createState (the Int 0)
+  (count, setCount) <- useState (the Double 0)
+  (count2, setCount2) <- useState (the Int 0)
   recordCount <- recordContext
   Text (show 0)
-
-
 
 App = Flex Col [
   Text "hello world",
