@@ -5,3 +5,5 @@ main = Demo24.Usage
 
 executable = "index.html"
 sourcedir = "src"
+
+depends = contrib

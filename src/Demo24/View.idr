@@ -2,6 +2,7 @@ module Demo24.View
 
 import Data.SortedMap.Dependent
 import Data.SortedMap
+import Data.List.Extra
 
 import Language.Reflection
 import Language.Reflection.TT
@@ -23,10 +24,16 @@ data Direction : Type where
   Row : Direction
   Col : Direction
 
+export
+Eq Direction where
+  (==) Row Row = True
+  (==) Col Col = True
+  (==) _ _ = False
+
 public export
 data View : Type where
   Text : {default [] press : List StateUpdate} -> (content : String) -> View
-  Input : (value : String) -> (change : String -> ()) -> View
+  Input : (value : String) -> (change : String -> List StateUpdate) -> View
   Flex : Direction -> (children : List View) -> View
   Provider : (identity : String) -> {auto context : Context identity} -> (value : content @{context}) -> (child : View) -> View
   Consumer : (identity : String) -> {auto context : Context identity} -> (child : content @{context} -> View) -> View
@@ -81,6 +88,7 @@ useState {state} initial = do
   implementContextInterface identity state
   check `(MakeStateFacade ~(IPrimVal EmptyFC (Str identity)) ~(quotedInitial))
 
+public export
 %macro
 createContext : Type -> Elab String
 createContext state = do
@@ -89,19 +97,17 @@ createContext state = do
   check (IPrimVal EmptyFC (Str identity))
 
 export
-mapWithIndex : ((a, Int) -> b) -> List a -> List b
-mapWithIndex mapper = rec 0 where
-  rec : Int -> List a -> List b
-  rec index [] = []
-  rec index (head :: tail) = (mapper (head, index)) :: (rec (index + 1) tail)
-
-export
-unfold : (contexts : SortedDMap String Cell) -> (states : SortedMap (List (String, String)) (identity : String ** Cell identity)) -> (path : List (String, String)) -> View -> View
+unfold :
+  (contexts : SortedDMap String Cell) ->
+  (states : SortedMap (List (String, String)) (identity : String ** Cell identity)) ->
+  (path : List (String, String)) ->
+  View ->
+  View
 unfold contexts states path view = rec view where
   rec : View -> View
   rec (Text {press} content) = (Text {press = press} content)
   rec (Input value change) = (Input value change)
-  rec (Flex direction children) = (Flex direction (mapWithIndex (\(item, index) => unfold contexts states (path ++ [("Flex", show index)]) item) children))
+  rec (Flex direction children) = (Flex direction (mapi (\index => \item => unfold contexts states (path ++ [("Flex", show index)]) item) children))
   rec (Provider identity value child) = unfold (insert identity (MakeCell value) contexts) states (path ++ [("Provider", identity)]) child
   rec (Consumer identity child) = case (lookup identity contexts) of
     (Just (_ ** MakeCell content)) => unfold contexts states (path ++ [("Consumer", identity)]) (child (believe_me content))
