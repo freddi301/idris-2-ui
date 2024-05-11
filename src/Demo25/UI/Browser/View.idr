@@ -30,20 +30,31 @@ parameters (update : List StateUpdate -> IO ())
     element <- (!(!window).document).createElement "span"
     element.innerText_set content
     element.onclick_set $ \event => update press
-    updateTextStyle element defaultTextStyle style
+    updateTextStyle element Nothing style
     pure element
-  create (Flex direction { style } children) = do
+  create (Flex direction { style, press } children) = do
     element <- (!(!window).document).createElement "div"
     sequence_ $ map (\view => do element.appendChild !(create view)) children
-    updateFlexStyle element defaultFlexStyle style
+    element.onclick_set $ \event => update press
+    updateFlexStyle element Nothing style
     style <- element.style
+    style.set "box-sizing" "border-box"
     style.set "display" "flex"
     style.set "flexDirection" (case direction of Col => "column"; Row => "row")
+    style.set "borderStyle" "solid"
     pure element
-  create (Input value change) = do
+  create (Input { style } value change) = do
     element <- (!(!window).document).createElement "input"
     element.value_set value
     element.oninput_set $ \event => update (change !(!event.currentTarget).value)
+    updateInputStyle element Nothing style
+    style <- element.style
+    style.set "border" "none"
+    style.set "outline" "none"
+    style.set "font-family" "inherit"
+    style.set "font-size" "16px"
+    style.set "background" "transparent"
+    style.set "padding" "0"
     pure element
   create _ = ?h3
 
@@ -54,11 +65,12 @@ parameters (update : List StateUpdate -> IO ())
   patch parentElement (Text { style = oldStyle } oldContent) oldElement (Text { style = newStyle, press } newContent) = do
     if newContent /= oldContent then oldElement.innerText_set newContent else pure ()
     oldElement.onclick_set $ \event => update press
-    updateTextStyle oldElement oldStyle newStyle
-  patch parentElement (Input oldValue _) oldElement (Input newValue newChange) = do
+    updateTextStyle oldElement (Just oldStyle) newStyle
+  patch parentElement (Input {style = oldStyle} oldValue _) oldElement (Input {style = newStyle} newValue newChange) = do
     if newValue /= oldValue then oldElement.value_set newValue else pure ()
     oldElement.oninput_set $ \event => update (newChange !(!event.currentTarget).value)
-  patch parentElement (Flex oldDirection { style = oldStyle } oldChildren) oldElement (Flex newDirection { style = newStyle } newChildren) = do
+    updateInputStyle oldElement (Just oldStyle) newStyle
+  patch parentElement (Flex oldDirection { style = oldStyle } oldChildren) oldElement (Flex newDirection { style = newStyle, press } newChildren) = do
     if newDirection /= oldDirection then (!oldElement.style).set "flexDirection" (case newDirection of Col => "column"; Row => "row") else pure ()
     childrenElements <- oldElement.children
     let
@@ -70,28 +82,29 @@ parameters (update : List StateUpdate -> IO ())
         _ | (Nothing, Nothing, Nothing) = pure ()
         _ | (x, y, z) = throw "Should not get here while patching dom"
     sequence_ $ map perChild [0..(max (length oldChildren) (length newChildren))]
-    updateFlexStyle oldElement oldStyle newStyle
+    oldElement.onclick_set $ \event => update press
+    updateFlexStyle oldElement (Just oldStyle) newStyle
   patch parentElement oldView oldElement newView =
     parentElement.replaceChild !(create newView) oldElement
 
 namespace Root
 
-  data Root : Type where
-    MakeRoot :
-      (rootElement : Element "div") ->
-      (currentStates : IORef $ SortedMap (List (String, String)) (identity : String ** Cell identity)) ->
-      (currentViews : IORef $ List View) ->
-      Root
+  public export
+  record Root where
+    constructor MakeRoot
+    element : Element "div"
+    states : IORef $ SortedMap (List (String, String)) (identity : String ** Cell identity)
+    views : IORef $ List View
 
   update : Root -> List View -> (updates : List StateUpdate) -> IO ()
-  update root@(MakeRoot rootElement currentStates currentViews) views updates = do
-    let oldStates = !(readRef currentStates)
+  update root views updates = do
+    let oldStates = !(readRef root.states)
     let newStates = foldl (\states => \(MakeStateUpdate path identity value) => insert path (identity ** MakeCell value) states) oldStates updates
-    writeRef currentStates newStates
-    let oldViews = !(readRef currentViews)
+    writeRef root.states newStates
+    let oldViews = !(readRef root.views)
     let newViews = (flip mapi) views $ \index => \view => unfold empty newStates [("root", show index)] view
-    writeRef currentViews newViews
-    patch (update root views) rootElement (Flex Col oldViews) rootElement (Flex Col newViews)
+    writeRef root.views newViews
+    patch (update root views) root.element (Flex Col oldViews) root.element (Flex Col newViews)
 
   export
   create : IO Root
@@ -99,7 +112,7 @@ namespace Root
     document <- (!window).document
     element <- document.createElement "div"
     (!document.body).appendChild element
-    let root = (MakeRoot element !(newRef empty) !(newRef []))
+    let root = MakeRoot { element = element, states = !(newRef empty), views = !(newRef []) }
     pure root
 
   export

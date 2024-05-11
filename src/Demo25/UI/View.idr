@@ -14,6 +14,8 @@ import Language.Reflection
 import Language.Reflection.TT
 %language ElabReflection
 
+-- TODO reafator events to nicier dsl
+
 public export
 interface Context (identity : String) where content : Type
 
@@ -39,8 +41,8 @@ Eq Direction where
 public export
 data View : Type where
   Text : {default defaultTextStyle style : TextStyle} -> {default [] press : List StateUpdate} -> (content : String) -> View
-  Input : (value : String) -> (change : String -> List StateUpdate) -> View
-  Flex : Direction -> {default defaultFlexStyle style : FlexStyle} -> (children : List View) -> View
+  Input : {default defaultInputStyle style : InputStyle} -> (value : String) -> (change : String -> List StateUpdate) -> View
+  Flex : Direction -> {default defaultFlexStyle style : FlexStyle} -> {default [] press : List StateUpdate} -> (children : List View) -> View
   Provider : (identity : String) -> {auto context : Context identity} -> (value : content @{context}) -> (child : View) -> View
   Consumer : (identity : String) -> {auto context : Context identity} -> (child : content @{context} -> View) -> View
   State : (identity : String) -> {auto context : Context identity} -> (initial : content @{context}) -> (render : (List (String, String), content @{context}) -> View) -> View
@@ -113,7 +115,7 @@ unfold contexts states path view = rec view where
   rec : View -> View
   rec (Text { style, press } content) = (Text { style = style, press = press } content)
   rec (Input value change) = (Input value change)
-  rec (Flex direction { style } children) = (Flex direction { style = style } (mapi (\index => \item => unfold contexts states (path ++ [("Flex", show index)]) item) children))
+  rec (Flex direction { style, press } children) = (Flex direction { style = style, press = press } (mapi (\index => \item => unfold contexts states (path ++ [("Flex", show index)]) item) children))
   rec (Provider identity value child) = unfold (insert identity (MakeCell value) contexts) states (path ++ [("Provider", identity)]) child
   rec (Consumer identity child) = case (lookup identity contexts) of
     (Just (_ ** MakeCell content)) => unfold contexts states (path ++ [("Consumer", identity)]) (child (believe_me content))

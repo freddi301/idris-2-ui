@@ -55,6 +55,10 @@ namespace Color
   hex string = RGBA 0 0 0 1 -- TODO
 
   export
+  transparent : Color
+  transparent = rgba 0 0 0 0
+
+  export
   toRGBA : Color -> (Fin 256, Fin 256, Fin 256, Double)
   toRGBA (RGBA r g b a) = (r, g, b, a)
 
@@ -146,6 +150,7 @@ namespace TextStyle
     color : Color
     align : TextAlign
     lineHeight : Double
+    userSelect : Bool
 
   export
   defaultTextStyle : TextStyle
@@ -153,17 +158,38 @@ namespace TextStyle
     font = defaultFont,
     color = rgb 0 0 0,
     align = Left,
-    lineHeight = 1.2
+    lineHeight = 1.2,
+    userSelect = True
   }
 
   export
   s :
-    {default defaultTextStyle.font font : Font} ->
-    {default defaultTextStyle.color color : Color} ->
-    {default defaultTextStyle.align align : TextAlign} ->
-    {default defaultTextStyle.lineHeight lineHeight : Double} ->
+    { default defaultTextStyle.font font : Font } ->
+    { default defaultTextStyle.color color : Color } ->
+    { default defaultTextStyle.align align : TextAlign } ->
+    { default defaultTextStyle.lineHeight lineHeight : Double } ->
+    { default defaultTextStyle.userSelect userSelect : Bool } ->
     TextStyle
-  s { font, color, align, lineHeight } = MakeTextStyle { font = font, color = color, align = align, lineHeight = lineHeight }
+  s { font, color, align, lineHeight } = MakeTextStyle { font = font, color = color, align = align, lineHeight = lineHeight, userSelect = userSelect }
+
+namespace InputStyle
+
+  public export
+  record InputStyle where
+    constructor MakeInputStyle
+    color : Color
+
+  export
+  defaultInputStyle : InputStyle
+  defaultInputStyle = MakeInputStyle {
+    color = rgb 0 0 0
+  }
+
+  export
+  s :
+    { default defaultInputStyle.color color : Color } ->
+    InputStyle
+  s { color } = MakeInputStyle { color = color }
 
 namespace Margin
 
@@ -453,7 +479,7 @@ namespace FlexStyle
     margin = defaultMargin,
     padding = defaultPadding,
     border = defaultBorder,
-    background = rgb 255 255 255,
+    background = rgba 255 255 255 0,
     gap = defaultFlexGap,
     wrap = False,
     justify = Start,

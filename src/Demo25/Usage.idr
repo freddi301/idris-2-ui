@@ -2,6 +2,9 @@ module Demo25.Usage
 
 import Demo25.UI.View
 import Demo25.UI.Browser.View
+import Demo25.UI.Browser.DOM
+
+import Demo25.TodoApp
 
 --- Hello world
 
@@ -178,11 +181,13 @@ StyledApp = Flex Col [
 main : IO ()
 main = do
   root <- Root.create
+  (!(root.element.style)).set "fontFamily" "Roboto, Arial"
   root.render [
-    HelloWorldApp, 
-    NaiveRoutingApp, 
-    ComponentInstancesApp, 
-    SimpleTodosApp,
-    RoutingApp,
-    StyledApp
+    TodoApp
+    -- HelloWorldApp, 
+    -- NaiveRoutingApp, 
+    -- ComponentInstancesApp, 
+    -- SimpleTodosApp,
+    -- RoutingApp,
+    -- StyledApp
   ]

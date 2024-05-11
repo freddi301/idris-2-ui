@@ -5,11 +5,14 @@ import Data.Fin
 import Demo25.UI.Style
 import Demo25.UI.Browser.DOM
 
-updateStyleFactory : style_t -> style_t -> { attribute : Type } -> Eq attribute => (style_t -> attribute) -> (attribute -> IO ()) -> IO ()
-updateStyleFactory oldStyle newStyle getAttribute updateAttribute = do
+updateStyleFactory : Maybe style_t -> style_t -> { attribute : Type } -> Eq attribute => (style_t -> attribute) -> (attribute -> IO ()) -> IO ()
+updateStyleFactory (Just oldStyle) newStyle getAttribute updateAttribute = do
   let oldAttribute = getAttribute oldStyle
   let newAttribute = getAttribute newStyle
   if (newAttribute /= oldAttribute) then updateAttribute newAttribute else pure ()  
+updateStyleFactory Nothing newStyle getAttribute updateAttribute = do
+  let newAttribute = getAttribute newStyle
+  updateAttribute newAttribute
 
 doubleDipToRem : Double -> String
 doubleDipToRem value = "\{show $ value / 16}rem"
@@ -27,7 +30,7 @@ boxSizeUnitToCSSUnit (BoxSizeUnitDensitiyIndipendentPixels dip) = doubleDipToRem
 boxSizeUnitToCSSUnit (BoxSizeUnitParentSizeFraction psf) = "\{show $ psf * 100}%"
 
 export
-updateTextStyle : Element tag -> TextStyle -> TextStyle -> IO ()
+updateTextStyle : Element tag -> Maybe TextStyle -> TextStyle -> IO ()
 updateTextStyle element oldStyle newStyle = do
   style <- element.style
   let updateStyle = updateStyleFactory oldStyle newStyle
@@ -47,9 +50,19 @@ updateTextStyle element oldStyle newStyle = do
     style.set "textAlign" textAlign
   updateStyle (\style => style.lineHeight) $ \value => do
     style.set "lineHeight" (show value)
+  updateStyle (\style => style.userSelect) $ \value => do
+    style.set "userSelect" $ if value then "auto" else "none"
 
 export
-updateFlexStyle : Element tag -> FlexStyle -> FlexStyle -> IO ()
+updateInputStyle : Element tag -> Maybe InputStyle -> InputStyle -> IO ()
+updateInputStyle element oldStyle newStyle = do
+  style <- element.style
+  let updateStyle = updateStyleFactory oldStyle newStyle
+  updateStyle (\style => style.color) $ \value => do
+    style.set "color" $ colorToRGBA value
+
+export
+updateFlexStyle : Element tag -> Maybe FlexStyle -> FlexStyle -> IO ()
 updateFlexStyle element oldStyle newStyle = do
   style <- element.style
   let updateStyle = updateStyleFactory oldStyle newStyle
