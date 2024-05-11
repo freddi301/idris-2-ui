@@ -17,8 +17,8 @@ Iterations code is all kept, in separate packages.
 
 ## TODO APP
 
-| [try it online](src/Demo25/doc/todo.html) | [source](src/Demo25/TodoApp.idr) |
-| ----------------------------------------- | -------------------------------- |
+| [try it online](https://freddi301.github.io/idris-2-ui/src/Demo25/doc/todo.html) | [source](src/Demo25/TodoApp.idr) |
+| -------------------------------------------------------------------------------- | -------------------------------- |
 
 ![screenshot](src/Demo25/doc/todo.png)
 
