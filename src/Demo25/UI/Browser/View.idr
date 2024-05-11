@@ -56,6 +56,7 @@ parameters (update : List StateUpdate -> IO ())
     style.set "font-size" "16px"
     style.set "background" "transparent"
     style.set "padding" "0"
+    style.set "width" "100%"
     pure element
   create _ = ?h3
 

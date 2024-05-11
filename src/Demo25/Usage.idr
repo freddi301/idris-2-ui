@@ -2,7 +2,6 @@ module Demo25.Usage
 
 import Demo25.UI.View
 import Demo25.UI.Browser.View
-import Demo25.UI.Browser.DOM
 
 import Demo25.TodoApp
 
@@ -124,6 +123,13 @@ namespace Routing
 --- Styling
 
 StyledApp = Flex Col [
+  Input {
+    style = s{
+      color = rgba 200 200 200 0.5
+    },
+    value = "",
+    change = \value => []
+  },
   Text {
     style = s{
       font = s{
@@ -181,13 +187,12 @@ StyledApp = Flex Col [
 main : IO ()
 main = do
   root <- Root.create
-  (!(root.element.style)).set "fontFamily" "Roboto, Arial"
   root.render [
-    TodoApp
-    -- HelloWorldApp, 
-    -- NaiveRoutingApp, 
-    -- ComponentInstancesApp, 
-    -- SimpleTodosApp,
-    -- RoutingApp,
-    -- StyledApp
+    TodoApp,
+    HelloWorldApp, 
+    NaiveRoutingApp, 
+    ComponentInstancesApp, 
+    SimpleTodosApp,
+    RoutingApp,
+    StyledApp
   ]

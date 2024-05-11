@@ -1,6 +1,8 @@
 module Demo25.TodoApp
 
 import Demo25.UI.View
+import Demo25.UI.Browser.View
+import Demo25.UI.Browser.DOM
 
 -- TODO i18n
 
@@ -164,7 +166,7 @@ TodoApp = do
   let theme = getTheme themeName
   (todos, setTodos) <- useState initialTodos
   (todosFilter, setTodosFilter) <- useState initialTodosFilter
-  (newText, setNewText) <- useState $ the String "Type here"
+  (newText, setNewText) <- useState $ the String ""
   let filteredTodos = filter (filterTodos todosFilter) todos.list
   let contextProviders = Provider themeContext theme
   contextProviders $ Flex Row {
@@ -230,11 +232,12 @@ TodoApp = do
           border = s{
             width = s{ vertical = 1 },
             color = s{ all = theme.borderColor }
-          }
+          },
+          width = psf 1.0
         }
       } [
         Flex Row { style = s{ width = dip 24 } } [],
-        Flex Row { style = s{ padding = s{ vertical = 4} } } [
+        Flex Row { style = s{ padding = s{ vertical = 4 }, grow = 1 } } [
           Input { 
             value = newText, 
             change = \value => [setNewText value],
@@ -277,4 +280,16 @@ TodoApp = do
           }
         ]
     ]
+  ]
+
+--- render
+
+main : IO ()
+main = do
+  bodyStyle <- (!((!((!window).document)).body)).style
+  bodyStyle.set "margin" "0"
+  bodyStyle.set "fontFamily" "Roboto, Arial"
+  root <- Root.create
+  root.render [
+    TodoApp
   ]

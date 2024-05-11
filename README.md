@@ -15,12 +15,20 @@ This library aims to provide the developer experience inspired by react native.
 This project is meant for inspiring production-ready packages and as a testing ground for iterations to reach the best developer experience possible.
 Iterations code is all kept, in separate packages.
 
+## TODO APP
+
+| [try it online](src/Demo25/doc/todo.html) | [source](src/Demo25/TodoApp.idr) |
+| ----------------------------------------- | -------------------------------- |
+
+![screenshot](src/Demo25/doc/todo.png)
+
 # Usage
 
+- clone this repository
 - [dev machine setup](DEV-MACHINE-SETUP.md)
 - run `./watch-build.sh`
-- edit [source file](src/Demo25/Usage.idr)
-- open [output file](build/exec/index.html)
+- edit [source file](src/Demo25/Usage.idr) and save
+- open [output file](build/exec/index.html), reload after save (wait for compiler to finish)
 
 ```idris
 
@@ -28,6 +36,8 @@ module Demo25.Usage
 
 import Demo25.UI.View
 import Demo25.UI.Browser.View
+
+import Demo25.TodoApp
 
 --- Hello world
 
@@ -147,6 +157,13 @@ namespace Routing
 --- Styling
 
 StyledApp = Flex Col [
+  Input {
+    style = s{
+      color = rgba 200 200 200 0.5
+    },
+    value = "",
+    change = \value => []
+  },
   Text {
     style = s{
       font = s{
@@ -205,6 +222,7 @@ main : IO ()
 main = do
   root <- Root.create
   root.render [
+    TodoApp,
     HelloWorldApp,
     NaiveRoutingApp,
     ComponentInstancesApp,
