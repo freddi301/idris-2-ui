@@ -1,0 +1,2757 @@
+<html>
+  <head>
+    <meta charset='utf-8'>
+  </head>
+  <body>
+    <script type='text/javascript'>
+class IdrisError extends Error { }
+
+function __prim_js2idris_array(x){
+  let acc = { h:0 };
+
+  for (let i = x.length-1; i>=0; i--) {
+      acc = { a1:x[i], a2:acc };
+  }
+  return acc;
+}
+
+function __prim_idris2js_array(x){
+  const result = Array();
+  while (x.h === undefined) {
+    result.push(x.a1); x = x.a2;
+  }
+  return result;
+}
+
+function __lazy(thunk) {
+  let res;
+  return function () {
+    if (thunk === undefined) return res;
+    res = thunk();
+    thunk = undefined;
+    return res;
+  };
+};
+
+function __prim_stringIteratorNew(_str) {
+  return 0
+}
+
+function __prim_stringIteratorToString(_, str, it, f) {
+  return f(str.slice(it))
+}
+
+function __prim_stringIteratorNext(str, it) {
+  if (it >= str.length)
+    return {h: 0};
+  else
+    return {a1: str.charAt(it), a2: it + 1};
+}
+
+function __tailRec(f,ini) {
+  let obj = ini;
+  while(true){
+    switch(obj.h){
+      case 0: return obj.a1;
+      default: obj = f(obj);
+    }
+  }
+}
+
+const _idrisworld = Symbol('idrisworld')
+
+const _crashExp = x=>{throw new IdrisError(x)}
+
+const _bigIntOfString = s=> {
+  try {
+    const idx = s.indexOf('.')
+    return idx === -1 ? BigInt(s) : BigInt(s.slice(0, idx))
+  } catch (e) { return 0n }
+}
+
+const _numberOfString = s=> {
+  try {
+    const res = Number(s);
+    return isNaN(res) ? 0 : res;
+  } catch (e) { return 0 }
+}
+
+const _intOfString = s=> Math.trunc(_numberOfString(s))
+
+const _truncToChar = x=> String.fromCodePoint(
+  (x >= 0 && x <= 55295) || (x >= 57344 && x <= 1114111) ? x : 0
+)
+
+// Int8
+const _truncInt8 = x => {
+  const res = x & 0xff;
+  return res >= 0x80 ? res - 0x100 : res;
+}
+
+const _truncBigInt8 = x => Number(BigInt.asIntN(8, x))
+
+// Euclidian Division
+const _div = (a,b) => {
+  const q = Math.trunc(a / b)
+  const r = a % b
+  return r < 0 ? (b > 0 ? q - 1 : q + 1) : q
+}
+
+const _divBigInt = (a,b) => {
+  const q = a / b
+  const r = a % b
+  return r < 0n ? (b > 0n ? q - 1n : q + 1n) : q
+}
+
+// Euclidian Modulo
+const _mod = (a,b) => {
+  const r = a % b
+  return r < 0 ? (b > 0 ? r + b : r - b) : r
+}
+
+const _modBigInt = (a,b) => {
+  const r = a % b
+  return r < 0n ? (b > 0n ? r + b : r - b) : r
+}
+
+const _add8s = (a,b) => _truncInt8(a + b)
+const _sub8s = (a,b) => _truncInt8(a - b)
+const _mul8s = (a,b) => _truncInt8(a * b)
+const _div8s = (a,b) => _truncInt8(_div(a,b))
+const _shl8s = (a,b) => _truncInt8(a << b)
+const _shr8s = (a,b) => _truncInt8(a >> b)
+
+// Int16
+const _truncInt16 = x => {
+  const res = x & 0xffff;
+  return res >= 0x8000 ? res - 0x10000 : res;
+}
+
+const _truncBigInt16 = x => Number(BigInt.asIntN(16, x))
+
+const _add16s = (a,b) => _truncInt16(a + b)
+const _sub16s = (a,b) => _truncInt16(a - b)
+const _mul16s = (a,b) => _truncInt16(a * b)
+const _div16s = (a,b) => _truncInt16(_div(a,b))
+const _shl16s = (a,b) => _truncInt16(a << b)
+const _shr16s = (a,b) => _truncInt16(a >> b)
+
+//Int32
+const _truncInt32 = x => x & 0xffffffff
+
+const _truncBigInt32 = x => Number(BigInt.asIntN(32, x))
+
+const _add32s = (a,b) => _truncInt32(a + b)
+const _sub32s = (a,b) => _truncInt32(a - b)
+const _div32s = (a,b) => _truncInt32(_div(a,b))
+
+const _mul32s = (a,b) => {
+  const res = a * b;
+  if (res <= Number.MIN_SAFE_INTEGER || res >= Number.MAX_SAFE_INTEGER) {
+    return _truncInt32((a & 0xffff) * b + (b & 0xffff) * (a & 0xffff0000))
+  } else {
+    return _truncInt32(res)
+  }
+}
+
+//Int64
+const _truncBigInt64 = x => BigInt.asIntN(64, x)
+
+const _add64s = (a,b) => _truncBigInt64(a + b)
+const _sub64s = (a,b) => _truncBigInt64(a - b)
+const _mul64s = (a,b) => _truncBigInt64(a * b)
+const _shl64s = (a,b) => _truncBigInt64(a << b)
+const _div64s = (a,b) => _truncBigInt64(_divBigInt(a,b))
+const _shr64s = (a,b) => _truncBigInt64(a >> b)
+
+//Bits8
+const _truncUInt8 = x => x & 0xff
+
+const _truncUBigInt8 = x => Number(BigInt.asUintN(8, x))
+
+const _add8u = (a,b) => (a + b) & 0xff
+const _sub8u = (a,b) => (a - b) & 0xff
+const _mul8u = (a,b) => (a * b) & 0xff
+const _div8u = (a,b) => Math.trunc(a / b)
+const _shl8u = (a,b) => (a << b) & 0xff
+const _shr8u = (a,b) => (a >> b) & 0xff
+
+//Bits16
+const _truncUInt16 = x => x & 0xffff
+
+const _truncUBigInt16 = x => Number(BigInt.asUintN(16, x))
+
+const _add16u = (a,b) => (a + b) & 0xffff
+const _sub16u = (a,b) => (a - b) & 0xffff
+const _mul16u = (a,b) => (a * b) & 0xffff
+const _div16u = (a,b) => Math.trunc(a / b)
+const _shl16u = (a,b) => (a << b) & 0xffff
+const _shr16u = (a,b) => (a >> b) & 0xffff
+
+//Bits32
+const _truncUBigInt32 = x => Number(BigInt.asUintN(32, x))
+
+const _truncUInt32 = x => {
+  const res = x & -1;
+  return res < 0 ? res + 0x100000000 : res;
+}
+
+const _add32u = (a,b) => _truncUInt32(a + b)
+const _sub32u = (a,b) => _truncUInt32(a - b)
+const _mul32u = (a,b) => _truncUInt32(_mul32s(a,b))
+const _div32u = (a,b) => Math.trunc(a / b)
+
+const _shl32u = (a,b) => _truncUInt32(a << b)
+const _shr32u = (a,b) => _truncUInt32(a <= 0x7fffffff ? a >> b : (b == 0 ? a : (a >> b) ^ ((-0x80000000) >> (b-1))))
+const _and32u = (a,b) => _truncUInt32(a & b)
+const _or32u = (a,b)  => _truncUInt32(a | b)
+const _xor32u = (a,b) => _truncUInt32(a ^ b)
+
+//Bits64
+const _truncUBigInt64 = x => BigInt.asUintN(64, x)
+
+const _add64u = (a,b) => BigInt.asUintN(64, a + b)
+const _mul64u = (a,b) => BigInt.asUintN(64, a * b)
+const _div64u = (a,b) => a / b
+const _shl64u = (a,b) => BigInt.asUintN(64, a << b)
+const _shr64u = (a,b) => BigInt.asUintN(64, a >> b)
+const _sub64u = (a,b) => BigInt.asUintN(64, a - b)
+
+//String
+const _strReverse = x => x.split('').reverse().join('')
+
+const _substr = (o,l,x) => x.slice(o, o + l)
+
+const Demo25_UI_Browser_DOM_prim__window = ( () => window);
+const Demo25_UI_Browser_DOM_prim__throw = ( (message) => { throw new Error(message); });
+const Demo25_UI_Browser_DOM_prim__tagName = ( (element) => element.tagName.toLowerCase());
+const Demo25_UI_Browser_DOM_prim__startViewTransition = ( (document, callback) => document.startViewTransition(() => callback()()));
+const Demo25_UI_Browser_DOM_prim__setJSAttribute = ( (object, attribute, value) => object[attribute] = value);
+const Demo25_UI_Browser_DOM_prim__setAsEventListener = ( (element, event, callback) => element[event] = x => callback(x)());
+const Demo25_UI_Browser_DOM_prim__replaceChild = ( (parent, newChild, oldChild) => parent.replaceChild(newChild, oldChild));
+const Demo25_UI_Browser_DOM_prim__removeChild = ( (parent, child) => parent.removeChild(child));
+const Demo25_UI_Browser_DOM_prim__getJSAttribute = ( (object, attribute) => object[attribute]);
+const Demo25_UI_Browser_DOM_prim__createElement = ( (document, type) => document.createElement(type));
+const Demo25_UI_Browser_DOM_prim__children = ( (parent) => __prim_js2idris_array(Array.from(parent.children)));
+const Demo25_UI_Browser_DOM_prim__appendChild = ( (parent, child) => parent.appendChild(child));
+/* {$tcOpt:1} */
+function x24tcOpt_1($0) {
+ switch($0.h) {
+  case 1: /* {TcContinue1:1} */ {
+   switch($0.a2.h) {
+    case 0: /* nil */ {
+     switch($0.a3.h) {
+      case 0: /* nil */ return {h: 0 /* {TcDone:1} */, a1: 1};
+      case undefined: /* cons */ return {h: 0 /* {TcDone:1} */, a1: 0};
+     }
+    }
+    case undefined: /* cons */ {
+     switch($0.a3.h) {
+      case 0: /* nil */ return {h: 0 /* {TcDone:1} */, a1: 2};
+      case undefined: /* cons */ return {h: 2 /* {TcContinue1:2} */, a1: $0.a1, a2: $0.a2.a1, a3: $0.a2.a2, a4: $0.a3.a1, a5: $0.a3.a2, a6: $0.a1.a2($0.a2.a1)($0.a3.a1)};
+     }
+    }
+   }
+  }
+  case 2: /* {TcContinue1:2} */ {
+   switch($0.a6) {
+    case 1: return {h: 1 /* {TcContinue1:1} */, a1: $0.a1, a2: $0.a3, a3: $0.a5};
+    default: return {h: 0 /* {TcDone:1} */, a1: $0.a6};
+   }
+  }
+ }
+}
+
+/* Prelude.Types.compare */
+function Prelude_Types_compare_Ord_x28Listx20x24ax29($0, $1, $2) {
+ return __tailRec(x24tcOpt_1, {h: 1 /* {TcContinue1:1} */, a1: $0, a2: $1, a3: $2});
+}
+
+/* Prelude.Types.case block in compare */
+function Prelude_Types_case__compare_6807($0, $1, $2, $3, $4, $5) {
+ return __tailRec(x24tcOpt_1, {h: 2 /* {TcContinue1:2} */, a1: $0, a2: $1, a3: $2, a4: $3, a5: $4, a6: $5});
+}
+
+/* {$tcOpt:2} */
+function x24tcOpt_2($0) {
+ switch($0.a2.h) {
+  case 0: /* nil */ {
+   switch($0.a3.h) {
+    case 0: /* nil */ return {h: 0 /* {TcDone:2} */, a1: 1};
+    default: return {h: 0 /* {TcDone:2} */, a1: 0};
+   }
+  }
+  case undefined: /* cons */ {
+   switch($0.a3.h) {
+    case undefined: /* cons */ {
+     switch($0.a1.a1($0.a2.a1)($0.a3.a1)) {
+      case 1: return {h: 1 /* {TcContinue2:1} */, a1: $0.a1, a2: $0.a2.a2, a3: $0.a3.a2};
+      case 0: return {h: 0 /* {TcDone:2} */, a1: 0};
+     }
+    }
+    default: return {h: 0 /* {TcDone:2} */, a1: 0};
+   }
+  }
+  default: return {h: 0 /* {TcDone:2} */, a1: 0};
+ }
+}
+
+/* Prelude.Types.== */
+function Prelude_Types_x3dx3d_Eq_x28Listx20x24ax29($0, $1, $2) {
+ return __tailRec(x24tcOpt_2, {h: 1 /* {TcContinue2:1} */, a1: $0, a2: $1, a3: $2});
+}
+
+/* {$tcOpt:3} */
+function x24tcOpt_3($0) {
+ switch($0.h) {
+  case 1: /* {TcContinue3:1} */ return {h: 2 /* {TcContinue3:2} */, a1: $0.a4, a2: $0.a3, a3: $0.a2, a4: $0.a1, a5: $0.a4};
+  case 2: /* {TcContinue3:2} */ {
+   switch($0.a5.h) {
+    case 0: /* Text */ return {h: 0 /* {TcDone:3} */, a1: {h: 0 /* Text */, a1: $0.a5.a1, a2: $0.a5.a2, a3: $0.a5.a3}};
+    case 1: /* Input */ return {h: 0 /* {TcDone:3} */, a1: {h: 1 /* Input */, a1: $0.a5.a1, a2: $0.a5.a2, a3: $0.a5.a3}};
+    case 2: /* Flex */ return {h: 0 /* {TcDone:3} */, a1: {h: 2 /* Flex */, a1: $0.a5.a1, a2: $0.a5.a2, a3: $0.a5.a3, a4: Data_List_Extra_mapi(index => item => Demo25_UI_View_unfold($0.a4, $0.a3, Prelude_Types_List_tailRecAppend($0.a2, {a1: {a1: 'Flex', a2: Prelude_Show_show_Show_Nat(index)}, a2: {h: 0}}), item), $0.a5.a4)}};
+    case 3: /* Provider */ return {h: 1 /* {TcContinue3:1} */, a1: Data_SortedMap_Dependent_insert($0.a5.a1, {a1: $0.a5.a1, a2: $0.a5.a2, a3: $0.a5.a3}, $0.a4), a2: $0.a3, a3: Prelude_Types_List_tailRecAppend($0.a2, {a1: {a1: 'Provider', a2: $0.a5.a1}, a2: {h: 0}}), a4: $0.a5.a4};
+    case 4: /* Consumer */ {
+     const $38 = Data_SortedMap_Dependent_lookup($0.a5.a1, $0.a4);
+     switch($38.h) {
+      case undefined: /* just */ return {h: 1 /* {TcContinue3:1} */, a1: $0.a4, a2: $0.a3, a3: Prelude_Types_List_tailRecAppend($0.a2, {a1: {a1: 'Consumer', a2: $0.a5.a1}, a2: {h: 0}}), a4: $0.a5.a3($38.a1.a2.a3)};
+      case 0: /* nothing */ return {h: 0 /* {TcDone:3} */, a1: {h: 0 /* Text */, a1: Demo25_UI_Style_TextStyle_defaultTextStyle(), a2: {h: 0}, a3: Prelude_Types_foldMap_Foldable_List(csegen_209(), $54 => $54, {a1: 'Missing context ', a2: {a1: $0.a5.a1, a2: {h: 0}}})}};
+     }
+    }
+    case 5: /* State */ return {h: 1 /* {TcContinue3:1} */, a1: $0.a4, a2: $0.a3, a3: Prelude_Types_List_tailRecAppend($0.a2, {a1: {a1: 'State', a2: $0.a5.a1}, a2: {h: 0}}), a4: $0.a5.a4({a1: $0.a2, a2: Demo25_UI_View_n__6896_4240_cont($0.a1, $0.a2, $0.a3, $0.a4, $0.a5.a1, $0.a5.a2, $0.a5.a4, $0.a5.a3)})};
+   }
+  }
+ }
+}
+
+/* Demo25.UI.View.unfold : SortedDMap String Cell -> SortedMap (List (String,
+String)) (identity : String ** Cell identity) -> List (String,
+String) -> View -> View */
+function Demo25_UI_View_unfold($0, $1, $2, $3) {
+ return __tailRec(x24tcOpt_3, {h: 1 /* {TcContinue3:1} */, a1: $0, a2: $1, a3: $2, a4: $3});
+}
+
+/* Demo25.UI.View.6874:4091:rec */
+function Demo25_UI_View_n__6874_4091_rec($0, $1, $2, $3, $4) {
+ return __tailRec(x24tcOpt_3, {h: 2 /* {TcContinue3:2} */, a1: $0, a2: $1, a3: $2, a4: $3, a5: $4});
+}
+
+/* {$tcOpt:4} */
+function x24tcOpt_4($0) {
+ switch($0.a2.h) {
+  case 0: /* nil */ return {h: 0 /* {TcDone:4} */, a1: $0.a1};
+  case undefined: /* cons */ return {h: 1 /* {TcContinue4:1} */, a1: {a1: $0.a2.a1, a2: $0.a1}, a2: $0.a2.a2};
+ }
+}
+
+/* Prelude.Types.List.reverseOnto : List a -> List a -> List a */
+function Prelude_Types_List_reverseOnto($0, $1) {
+ return __tailRec(x24tcOpt_4, {h: 1 /* {TcContinue4:1} */, a1: $0, a2: $1});
+}
+
+/* {$tcOpt:5} */
+function x24tcOpt_5($0) {
+ switch($0.a3.h) {
+  case undefined: /* cons */ return {h: 1 /* {TcContinue5:1} */, a1: {a1: $0.a1, a2: $0.a2($0.a3.a1)}, a2: $0.a2, a3: $0.a3.a2};
+  case 0: /* nil */ return {h: 0 /* {TcDone:5} */, a1: Prelude_Types_SnocList_x3cx3ex3e($0.a1, {h: 0})};
+ }
+}
+
+/* Prelude.Types.List.mapAppend : SnocList b -> (a -> b) -> List a -> List b */
+function Prelude_Types_List_mapAppend($0, $1, $2) {
+ return __tailRec(x24tcOpt_5, {h: 1 /* {TcContinue5:1} */, a1: $0, a2: $1, a3: $2});
+}
+
+/* {$tcOpt:6} */
+function x24tcOpt_6($0) {
+ switch($0.a3.h) {
+  case 0: /* Leaf */ {
+   switch($0.a1.a1.a1($0.a2)($0.a3.a1)) {
+    case 1: return {h: 0 /* {TcDone:6} */, a1: {a1: {a1: $0.a3.a1, a2: $0.a3.a2}}};
+    case 0: return {h: 0 /* {TcDone:6} */, a1: {h: 0}};
+   }
+  }
+  case 1: /* Branch2 */ {
+   switch($0.a1.a5($0.a2)($0.a3.a2)) {
+    case 1: return {h: 1 /* {TcContinue6:1} */, a1: $0.a1, a2: $0.a2, a3: $0.a3.a1};
+    case 0: return {h: 1 /* {TcContinue6:1} */, a1: $0.a1, a2: $0.a2, a3: $0.a3.a3};
+   }
+  }
+  case 2: /* Branch3 */ {
+   switch($0.a1.a5($0.a2)($0.a3.a2)) {
+    case 1: return {h: 1 /* {TcContinue6:1} */, a1: $0.a1, a2: $0.a2, a3: $0.a3.a1};
+    case 0: {
+     switch($0.a1.a5($0.a2)($0.a3.a4)) {
+      case 1: return {h: 1 /* {TcContinue6:1} */, a1: $0.a1, a2: $0.a2, a3: $0.a3.a3};
+      case 0: return {h: 1 /* {TcContinue6:1} */, a1: $0.a1, a2: $0.a2, a3: $0.a3.a5};
+     }
+    }
+   }
+  }
+ }
+}
+
+/* Data.SortedMap.Dependent.treeLookup : Ord k => k -> Tree n k v o -> Maybe (y : k ** v y) */
+function Data_SortedMap_Dependent_treeLookup($0, $1, $2) {
+ return __tailRec(x24tcOpt_6, {h: 1 /* {TcContinue6:1} */, a1: $0, a2: $1, a3: $2});
+}
+
+/* {$tcOpt:7} */
+function x24tcOpt_7($0) {
+ switch($0.a2.h) {
+  case 0: /* nil */ return {h: 0 /* {TcDone:7} */, a1: $0.a1};
+  case undefined: /* cons */ return {h: 1 /* {TcContinue7:1} */, a1: ($0.a1+1n), a2: $0.a2.a2};
+ }
+}
+
+/* Prelude.Types.List.lengthPlus : Nat -> List a -> Nat */
+function Prelude_Types_List_lengthPlus($0, $1) {
+ return __tailRec(x24tcOpt_7, {h: 1 /* {TcContinue7:1} */, a1: $0, a2: $1});
+}
+
+/* {$tcOpt:8} */
+function x24tcOpt_8($0) {
+ switch($0.a1) {
+  case 0n: {
+   switch($0.a2.h) {
+    case undefined: /* cons */ return {h: 0 /* {TcDone:8} */, a1: {a1: $0.a2.a1}};
+    default: return {h: 0 /* {TcDone:8} */, a1: {h: 0}};
+   }
+  }
+  default: {
+   const $8 = ($0.a1-1n);
+   switch($0.a2.h) {
+    case undefined: /* cons */ return {h: 1 /* {TcContinue8:1} */, a1: $8, a2: $0.a2.a2};
+    default: return {h: 0 /* {TcDone:8} */, a1: {h: 0}};
+   }
+  }
+ }
+}
+
+/* Demo25.UI.Browser.View.indexMaybe : Nat -> List a -> Maybe a */
+function Demo25_UI_Browser_View_indexMaybe($0, $1) {
+ return __tailRec(x24tcOpt_8, {h: 1 /* {TcContinue8:1} */, a1: $0, a2: $1});
+}
+
+/* {$tcOpt:9} */
+function x24tcOpt_9($0) {
+ switch($0.a3.h) {
+  case undefined: /* cons */ {
+   switch($0.a2($0.a3.a1)) {
+    case 1: return {h: 1 /* {TcContinue9:1} */, a1: {a1: $0.a1, a2: $0.a3.a1}, a2: $0.a2, a3: $0.a3.a2};
+    case 0: return {h: 1 /* {TcContinue9:1} */, a1: $0.a1, a2: $0.a2, a3: $0.a3.a2};
+   }
+  }
+  case 0: /* nil */ return {h: 0 /* {TcDone:9} */, a1: Prelude_Types_SnocList_x3cx3ex3e($0.a1, {h: 0})};
+ }
+}
+
+/* Prelude.Types.List.filterAppend : SnocList a -> (a -> Bool) -> List a -> List a */
+function Prelude_Types_List_filterAppend($0, $1, $2) {
+ return __tailRec(x24tcOpt_9, {h: 1 /* {TcContinue9:1} */, a1: $0, a2: $1, a3: $2});
+}
+
+/* {$tcOpt:10} */
+function x24tcOpt_10($0) {
+ switch($0.a3.h) {
+  case 0: /* nil */ return {h: 0 /* {TcDone:10} */, a1: $0.a2};
+  case undefined: /* cons */ return {h: 1 /* {TcContinue10:1} */, a1: $0.a1, a2: $0.a1($0.a2)($0.a3.a1), a3: $0.a3.a2};
+ }
+}
+
+/* Prelude.Types.foldl */
+function Prelude_Types_foldl_Foldable_List($0, $1, $2) {
+ return __tailRec(x24tcOpt_10, {h: 1 /* {TcContinue10:1} */, a1: $0, a2: $1, a3: $2});
+}
+
+/* {$tcOpt:11} */
+function x24tcOpt_11($0) {
+ switch($0.a1.h) {
+  case 0: /* nil */ return {h: 0 /* {TcDone:11} */, a1: $0.a2};
+  case undefined: /* cons */ return {h: 1 /* {TcContinue11:1} */, a1: $0.a1.a1, a2: {a1: $0.a1.a2, a2: $0.a2}};
+ }
+}
+
+/* Prelude.Types.SnocList.(<>>) : SnocList a -> List a -> List a */
+function Prelude_Types_SnocList_x3cx3ex3e($0, $1) {
+ return __tailRec(x24tcOpt_11, {h: 1 /* {TcContinue11:1} */, a1: $0, a2: $1});
+}
+
+/* {__mainExpression:0} */
+function __mainExpression_0() {
+ return PrimIO_unsafePerformIO($2 => Demo25_TodoApp_main($2));
+}
+
+/* {csegen:0} */
+const csegen_0 = __lazy(function () {
+ return $0 => $1 => Prelude_Types_List_mapAppend({h: 0}, $0, $1);
+});
+
+/* {csegen:3} */
+const csegen_3 = __lazy(function () {
+ return Demo25_UI_Style_Color_rgb(3n, 169n, 244n);
+});
+
+/* {csegen:9} */
+const csegen_9 = __lazy(function () {
+ return Demo25_UI_Style_Color_rgb(33n, 150n, 243n);
+});
+
+/* {csegen:11} */
+const csegen_11 = __lazy(function () {
+ return Demo25_UI_Style_Color_rgb(255n, 255n, 255n);
+});
+
+/* {csegen:20} */
+const csegen_20 = __lazy(function () {
+ const $0 = Demo25_UI_Style_FlexStyle_defaultFlexStyle();
+ return $0.a1;
+});
+
+/* {csegen:22} */
+const csegen_22 = __lazy(function () {
+ const $0 = Demo25_UI_Style_FlexStyle_defaultFlexStyle();
+ return $0.a3;
+});
+
+/* {csegen:23} */
+const csegen_23 = __lazy(function () {
+ const $0 = Demo25_UI_Style_FlexStyle_defaultFlexStyle();
+ return $0.a5;
+});
+
+/* {csegen:24} */
+const csegen_24 = __lazy(function () {
+ const $0 = Demo25_UI_Style_FlexStyle_defaultFlexStyle();
+ return $0.a6;
+});
+
+/* {csegen:25} */
+const csegen_25 = __lazy(function () {
+ const $0 = Demo25_UI_Style_FlexStyle_defaultFlexStyle();
+ return $0.a8;
+});
+
+/* {csegen:26} */
+const csegen_26 = __lazy(function () {
+ const $0 = Demo25_UI_Style_FlexStyle_defaultFlexStyle();
+ return $0.a9;
+});
+
+/* {csegen:27} */
+const csegen_27 = __lazy(function () {
+ const $0 = Demo25_UI_Style_FlexStyle_defaultFlexStyle();
+ return $0.a10;
+});
+
+/* {csegen:28} */
+const csegen_28 = __lazy(function () {
+ const $0 = Demo25_UI_Style_FlexStyle_defaultFlexStyle();
+ return $0.a11;
+});
+
+/* {csegen:30} */
+const csegen_30 = __lazy(function () {
+ return Demo25_UI_Style_BorderWidth_s(Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(1n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(1n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(1n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(1n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(1n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(1n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(1n));
+});
+
+/* {csegen:31} */
+const csegen_31 = __lazy(function () {
+ return Demo25_UI_Style_BorderRadius_max(Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(8n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(8n));
+});
+
+/* {csegen:33} */
+const csegen_33 = __lazy(function () {
+ const $0 = Demo25_UI_Style_FlexStyle_defaultFlexStyle();
+ return $0.a4;
+});
+
+/* {csegen:34} */
+const csegen_34 = __lazy(function () {
+ const $0 = Demo25_UI_Style_FlexStyle_defaultFlexStyle();
+ return $0.a7;
+});
+
+/* {csegen:38} */
+const csegen_38 = __lazy(function () {
+ const $0 = Demo25_UI_Style_Font_defaultFont();
+ return $0.a1;
+});
+
+/* {csegen:39} */
+const csegen_39 = __lazy(function () {
+ return Demo25_UI_Style_FotnWeight_fromInteger(800n, Number(_truncBigInt32(800n)));
+});
+
+/* {csegen:40} */
+const csegen_40 = __lazy(function () {
+ const $0 = Demo25_UI_Style_Font_defaultFont();
+ return $0.a4;
+});
+
+/* {csegen:42} */
+const csegen_42 = __lazy(function () {
+ const $0 = Demo25_UI_Style_TextStyle_defaultTextStyle();
+ return $0.a4;
+});
+
+/* {csegen:43} */
+const csegen_43 = __lazy(function () {
+ const $0 = Demo25_UI_Style_TextStyle_defaultTextStyle();
+ return $0.a5;
+});
+
+/* {csegen:45} */
+const csegen_45 = __lazy(function () {
+ const $0 = Demo25_UI_Style_FlexStyle_defaultFlexStyle();
+ return $0.a2;
+});
+
+/* {csegen:50} */
+const csegen_50 = __lazy(function () {
+ return Demo25_UI_Style_Padding_s(Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(16n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(4n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(4n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(16n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(4n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(16n));
+});
+
+/* {csegen:52} */
+const csegen_52 = __lazy(function () {
+ const $0 = Demo25_UI_Style_Border_defaultBorder();
+ return $0.a3;
+});
+
+/* {csegen:53} */
+const csegen_53 = __lazy(function () {
+ return Demo25_UI_Style_FlexGap_s(Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(16n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n));
+});
+
+/* {csegen:57} */
+const csegen_57 = __lazy(function () {
+ return Demo25_UI_Style_FlexStyle_s(csegen_20(), Demo25_UI_Style_Padding_s(Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(4n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(4n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(4n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n)), csegen_22(), csegen_33(), csegen_23(), csegen_24(), csegen_34(), csegen_25(), 1.0, csegen_27(), csegen_28());
+});
+
+/* {csegen:60} */
+const csegen_60 = __lazy(function () {
+ const $0 = Demo25_UI_Style_TextStyle_defaultTextStyle();
+ return $0.a1;
+});
+
+/* {csegen:61} */
+const csegen_61 = __lazy(function () {
+ const $0 = Demo25_UI_Style_TextStyle_defaultTextStyle();
+ return $0.a3;
+});
+
+/* {csegen:64} */
+const csegen_64 = __lazy(function () {
+ return Demo25_UI_Style_BorderRadius_max(Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(12n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(12n));
+});
+
+/* {csegen:78} */
+const csegen_78 = __lazy(function () {
+ const $a = b => a => $b => $c => $d => {
+  const $e = $b($d);
+  const $11 = $c($d);
+  return $e($11);
+ };
+ return {a1: b => a => func => $1 => $2 => Prelude_IO_map_Functor_IO(func, $1, $2), a2: a => $8 => $9 => $8, a3: $a};
+});
+
+/* {csegen:85} */
+const csegen_85 = __lazy(function () {
+ const $3 = b => a => $4 => $5 => $6 => {
+  const $7 = $4($6);
+  return $5($7)($6);
+ };
+ const $e = a => $f => $10 => {
+  const $11 = $f($10);
+  return $11($10);
+ };
+ const $0 = {a1: csegen_78(), a2: $3, a3: $e};
+ return {a1: $0, a2: a => $17 => $17};
+});
+
+/* {csegen:89} */
+const csegen_89 = __lazy(function () {
+ return {a1: $1 => $2 => Prelude_EqOrd_x3dx3d_Eq_String($1, $2), a2: $7 => $8 => Prelude_EqOrd_x2fx3d_Eq_String($7, $8)};
+});
+
+/* {csegen:97} */
+const csegen_97 = __lazy(function () {
+ return {a1: csegen_89(), a2: $3 => $4 => Prelude_EqOrd_compare_Ord_String($3, $4), a3: $9 => $a => Prelude_EqOrd_x3c_Ord_String($9, $a), a4: $f => $10 => Prelude_EqOrd_x3e_Ord_String($f, $10), a5: $15 => $16 => Prelude_EqOrd_x3cx3d_Ord_String($15, $16), a6: $1b => $1c => Prelude_EqOrd_x3ex3d_Ord_String($1b, $1c), a7: $21 => $22 => Prelude_EqOrd_max_Ord_String($21, $22), a8: $27 => $28 => Prelude_EqOrd_min_Ord_String($27, $28)};
+});
+
+/* {csegen:113} */
+const csegen_113 = __lazy(function () {
+ return {a1: acc => elem => func => init => input => Prelude_Types_foldr_Foldable_List(func, init, input), a2: elem => acc => func => init => input => Prelude_Types_foldl_Foldable_List(func, init, input), a3: elem => $b => Prelude_Types_null_Foldable_List($b), a4: elem => acc => m => $f => funcM => init => input => Prelude_Types_foldlM_Foldable_List($f, funcM, init, input), a5: elem => $16 => $16, a6: a => m => $18 => f => $19 => Prelude_Types_foldMap_Foldable_List($18, f, $19)};
+});
+
+/* {csegen:117} */
+const csegen_117 = __lazy(function () {
+ return {a1: $1 => $2 => Prelude_EqOrd_x3dx3d_Eq_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29(csegen_89(), csegen_89(), $1, $2), a2: $b => $c => Prelude_EqOrd_x2fx3d_Eq_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29(csegen_89(), csegen_89(), $b, $c)};
+});
+
+/* {csegen:128} */
+const csegen_128 = __lazy(function () {
+ return {a1: csegen_117(), a2: $3 => $4 => Prelude_EqOrd_compare_Ord_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29(csegen_97(), csegen_97(), $3, $4), a3: $d => $e => Prelude_EqOrd_x3c_Ord_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29(csegen_97(), csegen_97(), $d, $e), a4: $17 => $18 => Prelude_EqOrd_x3e_Ord_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29(csegen_97(), csegen_97(), $17, $18), a5: $21 => $22 => Prelude_EqOrd_x3cx3d_Ord_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29(csegen_97(), csegen_97(), $21, $22), a6: $2b => $2c => Prelude_EqOrd_x3ex3d_Ord_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29(csegen_97(), csegen_97(), $2b, $2c), a7: $35 => $36 => Prelude_EqOrd_max_Ord_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29(csegen_97(), csegen_97(), $35, $36), a8: $3f => $40 => Prelude_EqOrd_min_Ord_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29(csegen_97(), csegen_97(), $3f, $40)};
+});
+
+/* {csegen:143} */
+const csegen_143 = __lazy(function () {
+ return {a1: $1 => $2 => Demo25_UI_Style_DensitiyIndipendentPixels_x3dx3d_Eq_DensitiyIndipendentPixels($1, $2), a2: $7 => $8 => Demo25_UI_Style_DensitiyIndipendentPixels_x2fx3d_Eq_DensitiyIndipendentPixels($7, $8)};
+});
+
+/* {csegen:156} */
+const csegen_156 = __lazy(function () {
+ return {a1: $1 => $2 => Demo25_UI_Style_Color_x3dx3d_Eq_Color($1, $2), a2: $7 => $8 => Demo25_UI_Style_Color_x2fx3d_Eq_Color($7, $8)};
+});
+
+/* {csegen:164} */
+const csegen_164 = __lazy(function () {
+ return {a1: $1 => $2 => Prelude_EqOrd_x3dx3d_Eq_Double($1, $2), a2: $7 => $8 => Prelude_EqOrd_x2fx3d_Eq_Double($7, $8)};
+});
+
+/* {csegen:168} */
+const csegen_168 = __lazy(function () {
+ return {a1: $1 => $2 => Prelude_EqOrd_x3dx3d_Eq_Bool($1, $2), a2: $7 => $8 => Prelude_EqOrd_x2fx3d_Eq_Bool($7, $8)};
+});
+
+/* {csegen:205} */
+const csegen_205 = __lazy(function () {
+ return {a1: $1 => $2 => Demo25_UI_Style_BoxSize_x3dx3d_Eq_BoxSize($1, $2), a2: $7 => $8 => Demo25_UI_Style_BoxSize_x2fx3d_Eq_BoxSize($7, $8)};
+});
+
+/* {csegen:209} */
+const csegen_209 = __lazy(function () {
+ return {a1: $1 => $2 => ($1+$2), a2: ''};
+});
+
+/* prim__sub_Integer : Integer -> Integer -> Integer */
+function prim__sub_Integer($0, $1) {
+ return ($0-$1);
+}
+
+/* Demo25.TodoApp.== */
+function Demo25_TodoApp_x3dx3d_Eq_TodosFilter($0, $1) {
+ switch($0) {
+  case 0: {
+   switch($1) {
+    case 0: return 1;
+    default: return 0;
+   }
+  }
+  case 1: {
+   switch($1) {
+    case 1: return 1;
+    default: return 0;
+   }
+  }
+  case 2: {
+   switch($1) {
+    case 2: return 1;
+    default: return 0;
+   }
+  }
+  default: return 0;
+ }
+}
+
+/* Demo25.TodoApp.(.update) : Todos -> Int -> Todo -> Todos */
+function Demo25_TodoApp_rf__update($0, $1, $2) {
+ const $b = oldTodo => {
+  switch(Prelude_EqOrd_x3dx3d_Eq_Int(oldTodo.a1, $1)) {
+   case 1: return $2;
+   case 0: return oldTodo;
+  }
+ };
+ const $5 = Prelude_Basics_flip(csegen_0(), $0.a2, $b);
+ return {a1: $0.a1, a2: $5};
+}
+
+/* Demo25.TodoApp.(.remove) : Todos -> Int -> Todos */
+function Demo25_TodoApp_rf__remove($0, $1) {
+ return {a1: $0.a1, a2: Prelude_Types_List_filterAppend({h: 0}, oldTodo => Prelude_EqOrd_x2fx3d_Eq_Int(oldTodo.a1, $1), $0.a2)};
+}
+
+/* Demo25.TodoApp.(.add) : Todos -> Todos */
+function Demo25_TodoApp_rf__add($0, $1, $2) {
+ return {a1: _add32s($0.a1, 1), a2: {a1: {a1: $0.a1, a2: $1, a3: $2}, a2: $0.a2}};
+}
+
+/* Demo25.TodoApp.main : IO () */
+function Demo25_TodoApp_main($0) {
+ const $2 = Demo25_UI_Browser_DOM_window($0);
+ const $5 = Demo25_UI_Browser_DOM_rf__document($2, $0);
+ const $9 = Demo25_UI_Browser_DOM_rf__body($5, $0);
+ const $1 = Demo25_UI_Browser_DOM_rf__style($9, $0);
+ const $10 = Demo25_UI_Browser_DOM_rf__set($1, 'margin', '0', $0);
+ const $16 = Demo25_UI_Browser_DOM_rf__set($1, 'fontFamily', 'Roboto, Arial', $0);
+ const $1c = Demo25_UI_Browser_View_Root_create($0);
+ return Demo25_UI_Browser_View_Root_rf__render($1c, {a1: Demo25_TodoApp_TodoApp(), a2: {h: 0}}, $0);
+}
+
+/* Demo25.TodoApp.getTheme : ThemeName -> Theme */
+function Demo25_TodoApp_getTheme($0) {
+ switch($0) {
+  case 0: return {a1: Demo25_UI_Style_Color_rgb(20n, 20n, 20n), a2: Demo25_UI_Style_Color_rgb(225n, 225n, 225n), a3: csegen_3(), a4: Demo25_UI_Style_Color_rgb(70n, 70n, 70n), a5: csegen_3(), a6: Demo25_UI_Style_Color_rgb(10n, 10n, 10n)};
+  case 1: return {a1: Demo25_UI_Style_Color_rgb(245n, 245n, 245n), a2: Demo25_UI_Style_Color_rgb(60n, 60n, 60n), a3: csegen_9(), a4: Demo25_UI_Style_Color_rgb(200n, 200n, 200n), a5: csegen_9(), a6: csegen_11()};
+ }
+}
+
+/* Demo25.TodoApp.filterTodos : TodosFilter -> Todo -> Bool */
+function Demo25_TodoApp_filterTodos($0, $1) {
+ switch($0) {
+  case 0: return 1;
+  case 1: {
+   switch($1.a3) {
+    case 1: return 0;
+    case 0: return 1;
+   }
+  }
+  case 2: return $1.a3;
+ }
+}
+
+/* Demo25.TodoApp.TodoApp : View */
+const Demo25_TodoApp_TodoApp = __lazy(function () {
+ const $6 = $7 => {
+  const $9 = Demo25_TodoApp_getTheme($7.a1);
+  const $1e = $1f => {
+   const $27 = $28 => {
+    const $30 = $31 => {
+     const $33 = Prelude_Types_List_filterAppend({h: 0}, $37 => Demo25_TodoApp_filterTodos($28.a1, $37), $1f.a1.a2);
+     const $3d = $3e => ({h: 3 /* Provider */, a1: 'TodoApp/Demo25.idr:100:29', a2: Demo25_TodoApp_Contextx28fromStringx20x22TodoAppx2fDemo25x2eidrx3a100x3a29x22x29(), a3: $9, a4: $3e});
+     let $205;
+     switch($28.a1) {
+      case 0: {
+       $205 = 0;
+       break;
+      }
+      case 2: {
+       $205 = 1;
+       break;
+      }
+      case 1: {
+       $205 = 0;
+       break;
+      }
+     }
+     const $201 = Demo25_TodoApp_rf__add($1f.a1, $31.a1, $205);
+     const $1ff = $1f.a2($201);
+     const $1fe = {a1: $1ff, a2: {a1: $31.a2(''), a2: {h: 0}}};
+     const $1fb = Demo25_TodoApp_IconButton('+', $1fe);
+     const $1fa = {a1: $1fb, a2: {h: 0}};
+     const $1e9 = {a1: {h: 2 /* Flex */, a1: 0, a2: csegen_57(), a3: {h: 0}, a4: {a1: {h: 1 /* Input */, a1: $9.a2, a2: $31.a1, a3: value => ({a1: $31.a2(value), a2: {h: 0}})}, a2: {h: 0}}}, a2: $1fa};
+     const $1cb = {a1: {h: 2 /* Flex */, a1: 0, a2: Demo25_UI_Style_FlexStyle_s(csegen_20(), csegen_45(), csegen_22(), csegen_33(), csegen_23(), csegen_24(), csegen_34(), csegen_25(), csegen_26(), Demo25_UI_Style_BoxSize_Exact_dip(24.0), csegen_28()), a3: {h: 0}, a4: {h: 0}}, a2: $1e9};
+     const $186 = {h: 2 /* Flex */, a1: 0, a2: Demo25_UI_Style_FlexStyle_s(csegen_20(), csegen_50(), Demo25_UI_Style_Border_s(Demo25_UI_Style_BorderWidth_s(Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(1n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(1n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(1n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n)), Demo25_UI_Style_BorderColor_s($9.a4, $9.a4, $9.a4, $9.a4, $9.a4, $9.a4, $9.a4), csegen_52()), csegen_33(), csegen_53(), csegen_24(), csegen_34(), csegen_25(), csegen_26(), Demo25_UI_Style_BoxSize_Exact_psf(1.0), csegen_28()), a3: {h: 0}, a4: $1cb};
+     const $22f = todo => {
+      let $277;
+      switch(todo.a3) {
+       case 1: {
+        $277 = '\u{2714}';
+        break;
+       }
+       case 0: {
+        $277 = ' ';
+        break;
+       }
+      }
+      let $286;
+      switch(todo.a3) {
+       case 1: {
+        $286 = 0;
+        break;
+       }
+       case 0: {
+        $286 = 1;
+        break;
+       }
+      }
+      const $282 = {a1: todo.a1, a2: todo.a2, a3: $286};
+      const $27d = Demo25_TodoApp_rf__update($1f.a1, todo.a1, $282);
+      const $27b = $1f.a2($27d);
+      const $27a = {a1: $27b, a2: {h: 0}};
+      const $275 = Demo25_TodoApp_IconButton($277, $27a);
+      const $274 = {a1: $275, a2: {a1: {h: 2 /* Flex */, a1: 0, a2: csegen_57(), a3: {h: 0}, a4: {a1: {h: 0 /* Text */, a1: Demo25_UI_Style_TextStyle_s(csegen_60(), $9.a2, csegen_61(), csegen_42(), csegen_43()), a2: {h: 0}, a3: todo.a2}, a2: {h: 0}}}, a2: {a1: Demo25_TodoApp_IconButton('\u{2717}', {a1: $1f.a2(Demo25_TodoApp_rf__remove($1f.a1, todo.a1)), a2: {h: 0}}), a2: {h: 0}}}};
+      return {h: 2 /* Flex */, a1: 0, a2: Demo25_UI_Style_FlexStyle_s(csegen_20(), csegen_50(), Demo25_UI_Style_Border_s(Demo25_UI_Style_BorderWidth_s(Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(1n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n)), Demo25_UI_Style_BorderColor_s($9.a4, $9.a4, $9.a4, $9.a4, $9.a4, $9.a4, $9.a4), csegen_52()), csegen_33(), csegen_53(), csegen_24(), csegen_34(), csegen_25(), csegen_26(), Demo25_UI_Style_BoxSize_Exact_psf(1.0), csegen_28()), a3: {h: 0}, a4: $274};
+     };
+     const $22a = Prelude_Basics_flip(csegen_0(), $33, $22f);
+     const $20e = {h: 2 /* Flex */, a1: 1, a2: Demo25_UI_Style_FlexStyle_s(csegen_20(), csegen_45(), csegen_22(), csegen_33(), csegen_23(), csegen_24(), csegen_34(), csegen_25(), csegen_26(), Demo25_UI_Style_BoxSize_Exact_psf(1.0), csegen_28()), a3: {h: 0}, a4: $22a};
+     const $20d = {a1: $20e, a2: {h: 0}};
+     const $185 = {a1: $186, a2: $20d};
+     const $135 = {a1: {h: 2 /* Flex */, a1: 0, a2: Demo25_UI_Style_FlexStyle_s(Demo25_UI_Style_Margin_s(Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(8n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n)), csegen_45(), csegen_22(), csegen_33(), csegen_23(), csegen_24(), 2, csegen_25(), csegen_26(), Demo25_UI_Style_BoxSize_Exact_psf(1.0), csegen_28()), a3: {h: 0}, a4: Prelude_Basics_flip(csegen_0(), {a1: {a1: 'All', a2: 0}, a2: {a1: {a1: 'Todo', a2: 1}, a2: {a1: {a1: 'Done', a2: 2}, a2: {h: 0}}}}, $178 => Demo25_TodoApp_Tab($178.a1, Demo25_TodoApp_x3dx3d_Eq_TodosFilter($28.a1, $178.a2), {a1: $28.a2($178.a2), a2: {h: 0}}))}, a2: $185};
+     const $11d = {a1: {h: 0 /* Text */, a1: Demo25_UI_Style_TextStyle_s(Demo25_UI_Style_Font_s(csegen_38(), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(24n), csegen_39(), csegen_40()), $9.a2, 2, csegen_42(), csegen_43()), a2: {h: 0}, a3: 'My Todos'}, a2: $135};
+     const $d0 = {a1: {h: 2 /* Flex */, a1: 0, a2: Demo25_UI_Style_FlexStyle_s(csegen_20(), Demo25_UI_Style_Padding_s(Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(16n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(16n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(16n)), csegen_22(), csegen_33(), Demo25_UI_Style_FlexGap_s(Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(8n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n)), csegen_24(), 1, csegen_25(), csegen_26(), Demo25_UI_Style_BoxSize_Exact_psf(1.0), csegen_28()), a3: {h: 0}, a4: {a1: Demo25_TodoApp_IconButton('\u{2600}\u{fe0f}', {a1: $7.a2(1), a2: {h: 0}}), a2: {a1: Demo25_TodoApp_IconButton('\u{1f319}', {a1: $7.a2(0), a2: {h: 0}}), a2: {h: 0}}}}, a2: $11d};
+     const $75 = {h: 2 /* Flex */, a1: 1, a2: Demo25_UI_Style_FlexStyle_s(csegen_20(), Demo25_UI_Style_Padding_s(Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(8n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(8n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(8n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n)), Demo25_UI_Style_Border_s(csegen_30(), Demo25_UI_Style_BorderColor_s($9.a4, $9.a4, $9.a4, $9.a4, $9.a4, $9.a4, $9.a4), Demo25_UI_Style_BorderRadius_s(Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(8n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(8n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(8n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(8n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(8n), csegen_31(), csegen_31(), csegen_31(), csegen_31())), csegen_33(), csegen_23(), csegen_24(), csegen_34(), csegen_25(), csegen_26(), csegen_27(), csegen_28()), a3: {h: 0}, a4: $d0};
+     const $74 = {a1: $75, a2: {h: 0}};
+     const $45 = {h: 2 /* Flex */, a1: 0, a2: Demo25_UI_Style_FlexStyle_s(csegen_20(), Demo25_UI_Style_Padding_s(Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(16n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(16n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(16n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n)), csegen_22(), $9.a1, csegen_23(), csegen_24(), 2, csegen_25(), csegen_26(), csegen_27(), csegen_28()), a3: {h: 0}, a4: $74};
+     return $3d($45);
+    };
+    return Demo25_UI_View_OnStateFacade_x3ex3ex3d({a1: 'TodoApp/Demo25.idr:168:49', a2: Demo25_TodoApp_Contextx28fromStringx20x22TodoAppx2fDemo25x2eidrx3a168x3a49x22x29(), a3: ''}, $30);
+   };
+   return Demo25_UI_View_OnStateFacade_x3ex3ex3d({a1: 'TodoApp/Demo25.idr:54:21', a2: Demo25_TodoApp_Contextx28fromStringx20x22TodoAppx2fDemo25x2eidrx3a54x3a21x22x29(), a3: 0}, $27);
+  };
+  return Demo25_UI_View_OnStateFacade_x3ex3ex3d({a1: 'TodoApp/Demo25.idr:37:15', a2: Demo25_TodoApp_Contextx28fromStringx20x22TodoAppx2fDemo25x2eidrx3a37x3a15x22x29(), a3: {a1: 3, a2: {a1: {a1: 1, a2: 'Create a new todo', a3: 0}, a2: {a1: {a1: 2, a2: 'Try this app', a3: 1}, a2: {h: 0}}}}}, $1e);
+ };
+ return Demo25_UI_View_OnStateFacade_x3ex3ex3d({a1: 'TodoApp/Demo25.idr:71:15', a2: Demo25_TodoApp_Contextx28fromStringx20x22TodoAppx2fDemo25x2eidrx3a71x3a15x22x29(), a3: 0}, $6);
+});
+
+/* Demo25.TodoApp.Tab : View */
+function Demo25_TodoApp_Tab($0, $1, $2) {
+ const $6 = theme => {
+  let $48;
+  switch($1) {
+   case 1: {
+    $48 = theme.a3;
+    break;
+   }
+   case 0: {
+    $48 = Demo25_UI_Style_Color_transparent();
+    break;
+   }
+  }
+  const $3c = Demo25_UI_Style_BorderColor_s(csegen_11(), csegen_11(), csegen_11(), theme.a4, csegen_11(), $48, csegen_11());
+  const $23 = Demo25_UI_Style_Border_s(Demo25_UI_Style_BorderWidth_s(Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(4n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n)), $3c, csegen_52());
+  const $8 = Demo25_UI_Style_FlexStyle_s(Demo25_UI_Style_Margin_s(Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(4n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n)), csegen_50(), $23, csegen_33(), csegen_23(), csegen_24(), 2, csegen_25(), csegen_26(), csegen_27(), csegen_28());
+  return {h: 2 /* Flex */, a1: 0, a2: $8, a3: $2, a4: {a1: {h: 0 /* Text */, a1: Demo25_UI_Style_TextStyle_s(csegen_60(), theme.a2, csegen_61(), csegen_42(), 0), a2: {h: 0}, a3: $0}, a2: {h: 0}}};
+ };
+ return {h: 4 /* Consumer */, a1: 'TodoApp/Demo25.idr:100:29', a2: Demo25_TodoApp_Contextx28fromStringx20x22TodoAppx2fDemo25x2eidrx3a100x3a29x22x29(), a3: $6};
+}
+
+/* Demo25.TodoApp.IconButton : View */
+function Demo25_TodoApp_IconButton($0, $1) {
+ return {h: 4 /* Consumer */, a1: 'TodoApp/Demo25.idr:100:29', a2: Demo25_TodoApp_Contextx28fromStringx20x22TodoAppx2fDemo25x2eidrx3a100x3a29x22x29(), a3: theme => ({h: 2 /* Flex */, a1: 0, a2: Demo25_UI_Style_FlexStyle_s(csegen_20(), csegen_45(), Demo25_UI_Style_Border_s(csegen_30(), Demo25_UI_Style_BorderColor_s(theme.a4, theme.a4, theme.a4, theme.a4, theme.a4, theme.a4, theme.a4), Demo25_UI_Style_BorderRadius_s(Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(12n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(12n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(12n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(12n), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(12n), csegen_64(), csegen_64(), csegen_64(), csegen_64())), theme.a6, csegen_23(), csegen_24(), 2, 2, csegen_26(), Demo25_UI_Style_BoxSize_Exact_dip(24.0), Demo25_UI_Style_BoxSize_Exact_dip(24.0)), a3: $1, a4: {a1: {h: 2 /* Flex */, a1: 0, a2: Demo25_UI_Style_FlexStyle_s(csegen_20(), csegen_45(), csegen_22(), csegen_33(), csegen_23(), csegen_24(), csegen_34(), 2, csegen_26(), csegen_27(), csegen_28()), a3: {h: 0}, a4: {a1: {h: 0 /* Text */, a1: Demo25_UI_Style_TextStyle_s(Demo25_UI_Style_Font_s(csegen_38(), Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(16n), csegen_39(), csegen_40()), theme.a5, csegen_61(), csegen_42(), 0), a2: {h: 0}, a3: $0}, a2: {h: 0}}}, a2: {h: 0}}})};
+}
+
+/* Demo25.TodoApp.(Context(fromString "TodoApp/Demo25.idr:71:15")) : Context "TodoApp/Demo25.idr:71:15" */
+const Demo25_TodoApp_Contextx28fromStringx20x22TodoAppx2fDemo25x2eidrx3a71x3a15x22x29 = __lazy(function () {
+ return {a1: 'TodoApp/Demo25.idr:71:15', a2: {h: 'Demo25.TodoApp.ThemeName'}};
+});
+
+/* Demo25.TodoApp.(Context(fromString "TodoApp/Demo25.idr:54:21")) : Context "TodoApp/Demo25.idr:54:21" */
+const Demo25_TodoApp_Contextx28fromStringx20x22TodoAppx2fDemo25x2eidrx3a54x3a21x22x29 = __lazy(function () {
+ return {a1: 'TodoApp/Demo25.idr:54:21', a2: {h: 'Demo25.TodoApp.TodosFilter'}};
+});
+
+/* Demo25.TodoApp.(Context(fromString "TodoApp/Demo25.idr:37:15")) : Context "TodoApp/Demo25.idr:37:15" */
+const Demo25_TodoApp_Contextx28fromStringx20x22TodoAppx2fDemo25x2eidrx3a37x3a15x22x29 = __lazy(function () {
+ return {a1: 'TodoApp/Demo25.idr:37:15', a2: {h: 'Demo25.TodoApp.Todos'}};
+});
+
+/* Demo25.TodoApp.(Context(fromString "TodoApp/Demo25.idr:168:49")) : Context "TodoApp/Demo25.idr:168:49" */
+const Demo25_TodoApp_Contextx28fromStringx20x22TodoAppx2fDemo25x2eidrx3a168x3a49x22x29 = __lazy(function () {
+ return {a1: 'TodoApp/Demo25.idr:168:49', a2: {h: 'String'}};
+});
+
+/* Demo25.TodoApp.(Context(fromString "TodoApp/Demo25.idr:100:29")) : Context "TodoApp/Demo25.idr:100:29" */
+const Demo25_TodoApp_Contextx28fromStringx20x22TodoAppx2fDemo25x2eidrx3a100x3a29x22x29 = __lazy(function () {
+ return {a1: 'TodoApp/Demo25.idr:100:29', a2: {h: 'Demo25.TodoApp.Theme'}};
+});
+
+/* Demo25.UI.Browser.DOM.(.value_set) : Element "input" -> String -> IO () */
+function Demo25_UI_Browser_DOM_rf__value_set($0, $1, $2) {
+ return Demo25_UI_Browser_DOM_rf__setJSAttribute($0.a2, 'value', $1, $2);
+}
+
+/* Demo25.UI.Browser.DOM.(.value) : Element "input" -> IO String */
+function Demo25_UI_Browser_DOM_rf__value($0, $1) {
+ const $3 = Demo25_UI_Browser_DOM_rf__getJSAttribute($0.a2, 'value', $1);
+ return $3;
+}
+
+/* Demo25.UI.Browser.DOM.(.style) : Element anytag -> IO Style */
+function Demo25_UI_Browser_DOM_rf__style($0, $1) {
+ return Prelude_IO_map_Functor_IO($5 => $5, $7 => Demo25_UI_Browser_DOM_rf__getJSAttribute($0.a2, 'style', $7), $1);
+}
+
+/* Demo25.UI.Browser.DOM.(.startViewTransition) : Document -> (() -> IO ()) -> IO () */
+function Demo25_UI_Browser_DOM_rf__startViewTransition($0, $1, $2) {
+ return Demo25_UI_Browser_DOM_prim__startViewTransition($0, $6 => $1(undefined), $2);
+}
+
+/* Demo25.UI.Browser.DOM.(.setJSAttribute) : AnyPtr -> String -> AnyPtr -> IO () */
+function Demo25_UI_Browser_DOM_rf__setJSAttribute($0, $1, $2, $3) {
+ return Demo25_UI_Browser_DOM_prim__setJSAttribute($0, $1, $2, $3);
+}
+
+/* Demo25.UI.Browser.DOM.(.set) : Style -> String -> String -> IO () */
+function Demo25_UI_Browser_DOM_rf__set($0, $1, $2, $3) {
+ return Demo25_UI_Browser_DOM_rf__setJSAttribute($0, $1, $2, $3);
+}
+
+/* Demo25.UI.Browser.DOM.(.replaceChild) : HasChildren tag => Element tag -> Element anytag1 -> Element anytag2 -> IO () */
+function Demo25_UI_Browser_DOM_rf__replaceChild($0, $1, $2, $3) {
+ return $4 => Demo25_UI_Browser_DOM_prim__replaceChild($1.a2, $2.a2, $3.a2, $4);
+}
+
+/* Demo25.UI.Browser.DOM.(.removeChild) : HasChildren tag => Element tag -> Element anytag -> IO () */
+function Demo25_UI_Browser_DOM_rf__removeChild($0, $1, $2, $3) {
+ return Demo25_UI_Browser_DOM_prim__removeChild($1.a2, $2.a2, $3);
+}
+
+/* Demo25.UI.Browser.DOM.(.oninput_set) : Element tag -> (Event tag "input" -> IO ()) -> IO () */
+function Demo25_UI_Browser_DOM_rf__oninput_set($0, $1, $2) {
+ return Demo25_UI_Browser_DOM_prim__setAsEventListener($0.a2, 'oninput', event => $1({a1: $0.a1, a2: 'input', a3: event}), $2);
+}
+
+/* Demo25.UI.Browser.DOM.(.onclick_set) : Element tag -> (Event tag "click" -> IO ()) -> IO () */
+function Demo25_UI_Browser_DOM_rf__onclick_set($0, $1, $2) {
+ return Demo25_UI_Browser_DOM_prim__setAsEventListener($0.a2, 'onclick', event => $1({a1: $0.a1, a2: 'click', a3: event}), $2);
+}
+
+/* Demo25.UI.Browser.DOM.(.innerText_set) : Element anytag -> String -> IO () */
+function Demo25_UI_Browser_DOM_rf__innerText_set($0, $1, $2) {
+ return Demo25_UI_Browser_DOM_rf__setJSAttribute($0.a2, 'innerText', $1, $2);
+}
+
+/* Demo25.UI.Browser.DOM.(.getJSAttribute) : AnyPtr -> String -> IO AnyPtr */
+function Demo25_UI_Browser_DOM_rf__getJSAttribute($0, $1, $2) {
+ return Demo25_UI_Browser_DOM_prim__getJSAttribute($0, $1, $2);
+}
+
+/* Demo25.UI.Browser.DOM.(.document) : Window -> IO Document */
+function Demo25_UI_Browser_DOM_rf__document($0, $1) {
+ return Prelude_IO_map_Functor_IO($4 => $4, $6 => Demo25_UI_Browser_DOM_rf__getJSAttribute($0, 'document', $6), $1);
+}
+
+/* Demo25.UI.Browser.DOM.(.currentTarget) : Event "input" "input" -> IO (Element "input") */
+function Demo25_UI_Browser_DOM_rf__currentTarget($0) {
+ return $1 => {
+  const $3 = Demo25_UI_Browser_DOM_rf__getJSAttribute($0.a3, 'currentTarget', $1);
+  return {a1: 'input', a2: $3};
+ };
+}
+
+/* Demo25.UI.Browser.DOM.(.createElement) : Document -> (tag : String) -> ElementTag tag => IO (Element tag) */
+function Demo25_UI_Browser_DOM_rf__createElement($0, $1, $2, $3) {
+ return Prelude_IO_map_Functor_IO($6 => ({a1: $1, a2: $6}), $a => Demo25_UI_Browser_DOM_prim__createElement($0, $1, $a), $3);
+}
+
+/* Demo25.UI.Browser.DOM.(.children) : HasChildren tag => Element tag -> IO (List (tag : String ** Element tag)) */
+function Demo25_UI_Browser_DOM_rf__children($0, $1, $2) {
+ const $4 = Demo25_UI_Browser_DOM_prim__children($1.a2, $2);
+ return Prelude_Types_List_mapAppend({h: 0}, element => ({a1: PrimIO_unsafePerformIO($e => Demo25_UI_Browser_DOM_prim__tagName(element, $e)), a2: {a1: PrimIO_unsafePerformIO($16 => Demo25_UI_Browser_DOM_prim__tagName(element, $16)), a2: element}}), $4);
+}
+
+/* Demo25.UI.Browser.DOM.(.body) : Document -> IO (Element "body") */
+function Demo25_UI_Browser_DOM_rf__body($0, $1) {
+ return Prelude_IO_map_Functor_IO($4 => ({a1: 'body', a2: $4}), $8 => Demo25_UI_Browser_DOM_rf__getJSAttribute($0, 'body', $8), $1);
+}
+
+/* Demo25.UI.Browser.DOM.(.appendChild) : HasChildren tag => Element tag -> Element anytag -> IO () */
+function Demo25_UI_Browser_DOM_rf__appendChild($0, $1, $2, $3) {
+ return Demo25_UI_Browser_DOM_prim__appendChild($1.a2, $2.a2, $3);
+}
+
+/* Demo25.UI.Browser.DOM.window : IO Window */
+function Demo25_UI_Browser_DOM_window($0) {
+ return Prelude_IO_map_Functor_IO($3 => $3, $5 => Demo25_UI_Browser_DOM_prim__window(undefined, $5), $0);
+}
+
+/* Demo25.UI.Browser.DOM.throw : String -> IO () */
+function Demo25_UI_Browser_DOM_throw$($0, $1) {
+ return Demo25_UI_Browser_DOM_prim__throw($0, $1);
+}
+
+/* Prelude.Basics.flip : (a -> b -> c) -> b -> a -> c */
+function Prelude_Basics_flip($0, $1, $2) {
+ return $0($2)($1);
+}
+
+/* Prelude.Types.rangeFromTo */
+function Prelude_Types_rangeFromTo_Range_Nat($0, $1) {
+ switch(Prelude_EqOrd_compare_Ord_Integer($0, $1)) {
+  case 0: return Prelude_Types_takeUntil($8 => Prelude_Types_x3ex3d_Ord_Nat($8, $1), Prelude_Types_countFrom($0, $10 => ($10+1n)));
+  case 1: return Prelude_Types_pure_Applicative_List($0);
+  case 2: return Prelude_Types_takeUntil($17 => Prelude_Types_x3cx3d_Ord_Nat($17, $1), Prelude_Types_countFrom($0, n => Prelude_Types_prim__integerToNat((n-1n))));
+ }
+}
+
+/* Prelude.Types.pure */
+function Prelude_Types_pure_Applicative_List($0) {
+ return {a1: $0, a2: {h: 0}};
+}
+
+/* Prelude.Types.null */
+function Prelude_Types_null_Foldable_List($0) {
+ switch($0.h) {
+  case 0: /* nil */ return 1;
+  case undefined: /* cons */ return 0;
+ }
+}
+
+/* Prelude.Types.min */
+function Prelude_Types_min_Ord_x28Listx20x24ax29($0, $1, $2) {
+ switch(Prelude_Types_x3c_Ord_x28Listx20x24ax29($0, $1, $2)) {
+  case 1: return $1;
+  case 0: return $2;
+ }
+}
+
+/* Prelude.Types.max */
+function Prelude_Types_max_Ord_Nat($0, $1) {
+ switch(Prelude_Types_x3e_Ord_Nat($0, $1)) {
+  case 1: return $0;
+  case 0: return $1;
+ }
+}
+
+/* Prelude.Types.max */
+function Prelude_Types_max_Ord_x28Listx20x24ax29($0, $1, $2) {
+ switch(Prelude_Types_x3e_Ord_x28Listx20x24ax29($0, $1, $2)) {
+  case 1: return $1;
+  case 0: return $2;
+ }
+}
+
+/* Prelude.Types.map */
+function Prelude_Types_map_Functor_Maybe($0, $1) {
+ switch($1.h) {
+  case undefined: /* just */ return {a1: $0($1.a1)};
+  case 0: /* nothing */ return {h: 0};
+ }
+}
+
+/* Prelude.Types.foldr */
+function Prelude_Types_foldr_Foldable_List($0, $1, $2) {
+ switch($2.h) {
+  case 0: /* nil */ return $1;
+  case undefined: /* cons */ return $0($2.a1)(Prelude_Types_foldr_Foldable_List($0, $1, $2.a2));
+ }
+}
+
+/* Prelude.Types.foldlM */
+function Prelude_Types_foldlM_Foldable_List($0, $1, $2, $3) {
+ return Prelude_Types_foldl_Foldable_List(ma => b => $0.a2(undefined)(undefined)(ma)($f => Prelude_Basics_flip($1, b, $f)), $0.a1.a2(undefined)($2), $3);
+}
+
+/* Prelude.Types.foldMap */
+function Prelude_Types_foldMap_Foldable_List($0, $1, $2) {
+ return Prelude_Types_foldl_Foldable_List(acc => elem => $0.a1(acc)($1(elem)), $0.a2, $2);
+}
+
+/* Prelude.Types.> */
+function Prelude_Types_x3e_Ord_Nat($0, $1) {
+ return Prelude_EqOrd_x3dx3d_Eq_Ordering(Prelude_EqOrd_compare_Ord_Integer($0, $1), 2);
+}
+
+/* Prelude.Types.> */
+function Prelude_Types_x3e_Ord_x28Listx20x24ax29($0, $1, $2) {
+ return Prelude_EqOrd_x3dx3d_Eq_Ordering(Prelude_Types_compare_Ord_x28Listx20x24ax29($0, $1, $2), 2);
+}
+
+/* Prelude.Types.>= */
+function Prelude_Types_x3ex3d_Ord_Nat($0, $1) {
+ return Prelude_EqOrd_x2fx3d_Eq_Ordering(Prelude_EqOrd_compare_Ord_Integer($0, $1), 0);
+}
+
+/* Prelude.Types.>= */
+function Prelude_Types_x3ex3d_Ord_x28Listx20x24ax29($0, $1, $2) {
+ return Prelude_EqOrd_x2fx3d_Eq_Ordering(Prelude_Types_compare_Ord_x28Listx20x24ax29($0, $1, $2), 0);
+}
+
+/* Prelude.Types.< */
+function Prelude_Types_x3c_Ord_x28Listx20x24ax29($0, $1, $2) {
+ return Prelude_EqOrd_x3dx3d_Eq_Ordering(Prelude_Types_compare_Ord_x28Listx20x24ax29($0, $1, $2), 0);
+}
+
+/* Prelude.Types.<= */
+function Prelude_Types_x3cx3d_Ord_Nat($0, $1) {
+ return Prelude_EqOrd_x2fx3d_Eq_Ordering(Prelude_EqOrd_compare_Ord_Integer($0, $1), 2);
+}
+
+/* Prelude.Types.<= */
+function Prelude_Types_x3cx3d_Ord_x28Listx20x24ax29($0, $1, $2) {
+ return Prelude_EqOrd_x2fx3d_Eq_Ordering(Prelude_Types_compare_Ord_x28Listx20x24ax29($0, $1, $2), 2);
+}
+
+/* Prelude.Types./= */
+function Prelude_Types_x2fx3d_Eq_x28Listx20x24ax29($0, $1, $2) {
+ switch(Prelude_Types_x3dx3d_Eq_x28Listx20x24ax29($0, $1, $2)) {
+  case 1: return 0;
+  case 0: return 1;
+ }
+}
+
+/* Prelude.Types.takeUntil : (n -> Bool) -> Stream n -> List n */
+function Prelude_Types_takeUntil($0, $1) {
+ switch($0($1.a1)) {
+  case 1: return {a1: $1.a1, a2: {h: 0}};
+  case 0: return {a1: $1.a1, a2: Prelude_Types_takeUntil($0, $1.a2())};
+ }
+}
+
+/* Prelude.Types.List.tailRecAppend : List a -> List a -> List a */
+function Prelude_Types_List_tailRecAppend($0, $1) {
+ return Prelude_Types_List_reverseOnto($1, Prelude_Types_List_reverse($0));
+}
+
+/* Prelude.Types.List.reverse : List a -> List a */
+function Prelude_Types_List_reverse($0) {
+ return Prelude_Types_List_reverseOnto({h: 0}, $0);
+}
+
+/* Prelude.Types.prim__integerToNat : Integer -> Nat */
+function Prelude_Types_prim__integerToNat($0) {
+ switch(((0n<=$0)?1:0)) {
+  case 0: return 0n;
+  default: return $0;
+ }
+}
+
+/* Prelude.Types.List.lengthTR : List a -> Nat */
+function Prelude_Types_List_lengthTR($0) {
+ return Prelude_Types_List_lengthPlus(0n, $0);
+}
+
+/* Prelude.Types.countFrom : n -> (n -> n) -> Stream n */
+function Prelude_Types_countFrom($0, $1) {
+ return {a1: $0, a2: () => Prelude_Types_countFrom($1($0), $1)};
+}
+
+/* Prelude.EqOrd.min */
+function Prelude_EqOrd_min_Ord_String($0, $1) {
+ switch(Prelude_EqOrd_x3c_Ord_String($0, $1)) {
+  case 1: return $0;
+  case 0: return $1;
+ }
+}
+
+/* Prelude.EqOrd.min */
+function Prelude_EqOrd_min_Ord_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29($0, $1, $2, $3) {
+ switch(Prelude_EqOrd_x3c_Ord_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29($0, $1, $2, $3)) {
+  case 1: return $2;
+  case 0: return $3;
+ }
+}
+
+/* Prelude.EqOrd.max */
+function Prelude_EqOrd_max_Ord_String($0, $1) {
+ switch(Prelude_EqOrd_x3e_Ord_String($0, $1)) {
+  case 1: return $0;
+  case 0: return $1;
+ }
+}
+
+/* Prelude.EqOrd.max */
+function Prelude_EqOrd_max_Ord_Double($0, $1) {
+ switch(Prelude_EqOrd_x3e_Ord_Double($0, $1)) {
+  case 1: return $0;
+  case 0: return $1;
+ }
+}
+
+/* Prelude.EqOrd.max */
+function Prelude_EqOrd_max_Ord_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29($0, $1, $2, $3) {
+ switch(Prelude_EqOrd_x3e_Ord_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29($0, $1, $2, $3)) {
+  case 1: return $2;
+  case 0: return $3;
+ }
+}
+
+/* Prelude.EqOrd.compare */
+function Prelude_EqOrd_compare_Ord_String($0, $1) {
+ switch(Prelude_EqOrd_x3c_Ord_String($0, $1)) {
+  case 1: return 0;
+  case 0: {
+   switch(Prelude_EqOrd_x3dx3d_Eq_String($0, $1)) {
+    case 1: return 1;
+    case 0: return 2;
+   }
+  }
+ }
+}
+
+/* Prelude.EqOrd.compare */
+function Prelude_EqOrd_compare_Ord_Integer($0, $1) {
+ switch(Prelude_EqOrd_x3c_Ord_Integer($0, $1)) {
+  case 1: return 0;
+  case 0: {
+   switch(Prelude_EqOrd_x3dx3d_Eq_Integer($0, $1)) {
+    case 1: return 1;
+    case 0: return 2;
+   }
+  }
+ }
+}
+
+/* Prelude.EqOrd.compare */
+function Prelude_EqOrd_compare_Ord_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29($0, $1, $2, $3) {
+ switch($0.a1.a2($2.a1)($3.a1)) {
+  case 1: return $0.a2($2.a1)($3.a1);
+  case 0: return $1.a2($2.a2)($3.a2);
+ }
+}
+
+/* Prelude.EqOrd.> */
+function Prelude_EqOrd_x3e_Ord_String($0, $1) {
+ switch((($0>$1)?1:0)) {
+  case 0: return 0;
+  default: return 1;
+ }
+}
+
+/* Prelude.EqOrd.> */
+function Prelude_EqOrd_x3e_Ord_Double($0, $1) {
+ switch((($0>$1)?1:0)) {
+  case 0: return 0;
+  default: return 1;
+ }
+}
+
+/* Prelude.EqOrd.> */
+function Prelude_EqOrd_x3e_Ord_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29($0, $1, $2, $3) {
+ return Prelude_EqOrd_x3dx3d_Eq_Ordering(Prelude_EqOrd_compare_Ord_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29($0, $1, $2, $3), 2);
+}
+
+/* Prelude.EqOrd.>= */
+function Prelude_EqOrd_x3ex3d_Ord_String($0, $1) {
+ switch((($0>=$1)?1:0)) {
+  case 0: return 0;
+  default: return 1;
+ }
+}
+
+/* Prelude.EqOrd.>= */
+function Prelude_EqOrd_x3ex3d_Ord_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29($0, $1, $2, $3) {
+ return Prelude_EqOrd_x2fx3d_Eq_Ordering(Prelude_EqOrd_compare_Ord_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29($0, $1, $2, $3), 0);
+}
+
+/* Prelude.EqOrd.== */
+function Prelude_EqOrd_x3dx3d_Eq_String($0, $1) {
+ switch((($0===$1)?1:0)) {
+  case 0: return 0;
+  default: return 1;
+ }
+}
+
+/* Prelude.EqOrd.== */
+function Prelude_EqOrd_x3dx3d_Eq_Ordering($0, $1) {
+ switch($0) {
+  case 0: {
+   switch($1) {
+    case 0: return 1;
+    default: return 0;
+   }
+  }
+  case 1: {
+   switch($1) {
+    case 1: return 1;
+    default: return 0;
+   }
+  }
+  case 2: {
+   switch($1) {
+    case 2: return 1;
+    default: return 0;
+   }
+  }
+  default: return 0;
+ }
+}
+
+/* Prelude.EqOrd.== */
+function Prelude_EqOrd_x3dx3d_Eq_Integer($0, $1) {
+ switch((($0===$1)?1:0)) {
+  case 0: return 0;
+  default: return 1;
+ }
+}
+
+/* Prelude.EqOrd.== */
+function Prelude_EqOrd_x3dx3d_Eq_Int($0, $1) {
+ switch((($0===$1)?1:0)) {
+  case 0: return 0;
+  default: return 1;
+ }
+}
+
+/* Prelude.EqOrd.== */
+function Prelude_EqOrd_x3dx3d_Eq_Double($0, $1) {
+ switch((($0===$1)?1:0)) {
+  case 0: return 0;
+  default: return 1;
+ }
+}
+
+/* Prelude.EqOrd.== */
+function Prelude_EqOrd_x3dx3d_Eq_Char($0, $1) {
+ switch((($0===$1)?1:0)) {
+  case 0: return 0;
+  default: return 1;
+ }
+}
+
+/* Prelude.EqOrd.== */
+function Prelude_EqOrd_x3dx3d_Eq_Bool($0, $1) {
+ switch($0) {
+  case 1: {
+   switch($1) {
+    case 1: return 1;
+    default: return 0;
+   }
+  }
+  case 0: {
+   switch($1) {
+    case 0: return 1;
+    default: return 0;
+   }
+  }
+  default: return 0;
+ }
+}
+
+/* Prelude.EqOrd.== */
+function Prelude_EqOrd_x3dx3d_Eq_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29($0, $1, $2, $3) {
+ switch($0.a1($2.a1)($3.a1)) {
+  case 1: return $1.a1($2.a2)($3.a2);
+  case 0: return 0;
+ }
+}
+
+/* Prelude.EqOrd.< */
+function Prelude_EqOrd_x3c_Ord_String($0, $1) {
+ switch((($0<$1)?1:0)) {
+  case 0: return 0;
+  default: return 1;
+ }
+}
+
+/* Prelude.EqOrd.< */
+function Prelude_EqOrd_x3c_Ord_Integer($0, $1) {
+ switch((($0<$1)?1:0)) {
+  case 0: return 0;
+  default: return 1;
+ }
+}
+
+/* Prelude.EqOrd.< */
+function Prelude_EqOrd_x3c_Ord_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29($0, $1, $2, $3) {
+ return Prelude_EqOrd_x3dx3d_Eq_Ordering(Prelude_EqOrd_compare_Ord_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29($0, $1, $2, $3), 0);
+}
+
+/* Prelude.EqOrd.<= */
+function Prelude_EqOrd_x3cx3d_Ord_String($0, $1) {
+ switch((($0<=$1)?1:0)) {
+  case 0: return 0;
+  default: return 1;
+ }
+}
+
+/* Prelude.EqOrd.<= */
+function Prelude_EqOrd_x3cx3d_Ord_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29($0, $1, $2, $3) {
+ return Prelude_EqOrd_x2fx3d_Eq_Ordering(Prelude_EqOrd_compare_Ord_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29($0, $1, $2, $3), 2);
+}
+
+/* Prelude.EqOrd./= */
+function Prelude_EqOrd_x2fx3d_Eq_String($0, $1) {
+ switch(Prelude_EqOrd_x3dx3d_Eq_String($0, $1)) {
+  case 1: return 0;
+  case 0: return 1;
+ }
+}
+
+/* Prelude.EqOrd./= */
+function Prelude_EqOrd_x2fx3d_Eq_Ordering($0, $1) {
+ switch(Prelude_EqOrd_x3dx3d_Eq_Ordering($0, $1)) {
+  case 1: return 0;
+  case 0: return 1;
+ }
+}
+
+/* Prelude.EqOrd./= */
+function Prelude_EqOrd_x2fx3d_Eq_Int($0, $1) {
+ switch(Prelude_EqOrd_x3dx3d_Eq_Int($0, $1)) {
+  case 1: return 0;
+  case 0: return 1;
+ }
+}
+
+/* Prelude.EqOrd./= */
+function Prelude_EqOrd_x2fx3d_Eq_Double($0, $1) {
+ switch(Prelude_EqOrd_x3dx3d_Eq_Double($0, $1)) {
+  case 1: return 0;
+  case 0: return 1;
+ }
+}
+
+/* Prelude.EqOrd./= */
+function Prelude_EqOrd_x2fx3d_Eq_Bool($0, $1) {
+ switch(Prelude_EqOrd_x3dx3d_Eq_Bool($0, $1)) {
+  case 1: return 0;
+  case 0: return 1;
+ }
+}
+
+/* Prelude.EqOrd./= */
+function Prelude_EqOrd_x2fx3d_Eq_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29($0, $1, $2, $3) {
+ switch(Prelude_EqOrd_x3dx3d_Eq_x28x7cx28x28Builtinx2ePairx20x24ax29x20x24bx29x2cx28x28Builtinx2eMkPairx20x24ax29x20x24bx29x7cx29($0, $1, $2, $3)) {
+  case 1: return 0;
+  case 0: return 1;
+ }
+}
+
+/* Prelude.EqOrd.compareInteger : Integer -> Integer -> Ordering */
+function Prelude_EqOrd_compareInteger($0, $1) {
+ return Prelude_EqOrd_compare_Ord_Integer($0, $1);
+}
+
+/* Prelude.Interfaces.sequence_ : Applicative f => Foldable t => t (f a) -> f () */
+function Prelude_Interfaces_sequence_($0, $1, $2) {
+ return $1.a1(undefined)(undefined)($c => $d => Prelude_Interfaces_x2ax3e($0, $c, $d))($0.a2(undefined)(undefined))($2);
+}
+
+/* Prelude.Interfaces.(*>) : Applicative f => f a -> f b -> f b */
+function Prelude_Interfaces_x2ax3e($0, $1, $2) {
+ const $d = $0.a1;
+ const $c = $f => $10 => $d(undefined)(undefined)($f)($10);
+ const $b = $c($1a => $1b => $1b);
+ const $a = $b($1);
+ const $4 = $0.a3(undefined)(undefined)($a);
+ return $4($2);
+}
+
+/* Prelude.Show.show */
+function Prelude_Show_show_Show_Nat($0) {
+ return Prelude_Show_show_Show_Integer($0);
+}
+
+/* Prelude.Show.show */
+function Prelude_Show_show_Show_Integer($0) {
+ return Prelude_Show_showPrec_Show_Integer({h: 0 /* Open */}, $0);
+}
+
+/* Prelude.Show.show */
+function Prelude_Show_show_Show_Int($0) {
+ return Prelude_Show_showPrec_Show_Int({h: 0 /* Open */}, $0);
+}
+
+/* Prelude.Show.show */
+function Prelude_Show_show_Show_Double($0) {
+ return Prelude_Show_showPrec_Show_Double({h: 0 /* Open */}, $0);
+}
+
+/* Prelude.Show.showPrec */
+function Prelude_Show_showPrec_Show_Integer($0, $1) {
+ return Prelude_Show_primNumShow($4 => (''+$4), $0, $1);
+}
+
+/* Prelude.Show.showPrec */
+function Prelude_Show_showPrec_Show_Int($0, $1) {
+ return Prelude_Show_primNumShow($4 => (''+$4), $0, $1);
+}
+
+/* Prelude.Show.showPrec */
+function Prelude_Show_showPrec_Show_Double($0, $1) {
+ return Prelude_Show_primNumShow($4 => (''+$4), $0, $1);
+}
+
+/* Prelude.Show.compare */
+function Prelude_Show_compare_Ord_Prec($0, $1) {
+ switch($0.h) {
+  case 4: /* User */ {
+   switch($1.h) {
+    case 4: /* User */ return Prelude_EqOrd_compare_Ord_Integer($0.a1, $1.a1);
+    default: return Prelude_EqOrd_compare_Ord_Integer(Prelude_Show_precCon($0), Prelude_Show_precCon($1));
+   }
+  }
+  default: return Prelude_EqOrd_compare_Ord_Integer(Prelude_Show_precCon($0), Prelude_Show_precCon($1));
+ }
+}
+
+/* Prelude.Show.>= */
+function Prelude_Show_x3ex3d_Ord_Prec($0, $1) {
+ return Prelude_EqOrd_x2fx3d_Eq_Ordering(Prelude_Show_compare_Ord_Prec($0, $1), 0);
+}
+
+/* Prelude.Show.showParens : Bool -> String -> String */
+function Prelude_Show_showParens($0, $1) {
+ switch($0) {
+  case 0: return $1;
+  case 1: return ('('+($1+')'));
+ }
+}
+
+/* Prelude.Show.primNumShow : (a -> String) -> Prec -> a -> String */
+function Prelude_Show_primNumShow($0, $1, $2) {
+ const $3 = $0($2);
+ let $7;
+ switch(Prelude_Show_x3ex3d_Ord_Prec($1, {h: 5 /* PrefixMinus */})) {
+  case 1: {
+   $7 = Prelude_Show_firstCharIs($e => Prelude_EqOrd_x3dx3d_Eq_Char($e, '-'), $3);
+   break;
+  }
+  case 0: {
+   $7 = 0;
+   break;
+  }
+ }
+ return Prelude_Show_showParens($7, $3);
+}
+
+/* Prelude.Show.precCon : Prec -> Integer */
+function Prelude_Show_precCon($0) {
+ switch($0.h) {
+  case 0: /* Open */ return 0n;
+  case 1: /* Equal */ return 1n;
+  case 2: /* Dollar */ return 2n;
+  case 3: /* Backtick */ return 3n;
+  case 4: /* User */ return 4n;
+  case 5: /* PrefixMinus */ return 5n;
+  case 6: /* App */ return 6n;
+ }
+}
+
+/* Prelude.Show.firstCharIs : (Char -> Bool) -> String -> Bool */
+function Prelude_Show_firstCharIs($0, $1) {
+ switch($1) {
+  case '': return 0;
+  default: return $0(($1.charAt(0)));
+ }
+}
+
+/* Prelude.IO.map */
+function Prelude_IO_map_Functor_IO($0, $1, $2) {
+ const $3 = $1($2);
+ return $0($3);
+}
+
+/* PrimIO.unsafePerformIO : IO a -> a */
+function PrimIO_unsafePerformIO($0) {
+ const $2 = w => {
+  const $3 = $0(w);
+  return $3;
+ };
+ return PrimIO_unsafeCreateWorld($2);
+}
+
+/* PrimIO.unsafeCreateWorld : (1 _ : ((1 _ : %World) -> a)) -> a */
+function PrimIO_unsafeCreateWorld($0) {
+ return $0(_idrisworld);
+}
+
+/* Demo25.UI.Browser.View.with block in patch,perChild */
+function Demo25_UI_Browser_View_with__patchx2cperChild_3836($0, $1, $2, $3, $4, $5, $6, $7, $8, $9, $a, $b, $c, $d, $e, $f) {
+ switch($f.a1.h) {
+  case undefined: /* just */ {
+   switch($f.a1.a1.h) {
+    case undefined: /* cons */ {
+     switch($f.a2.h) {
+      case undefined: /* cons */ {
+       switch($f.a2.a1.h) {
+        case undefined: /* just */ {
+         switch($f.a2.a2.h) {
+          case undefined: /* just */ return $16 => Demo25_UI_Browser_View_patch($0, 'div', $b, $f.a2.a1.a1, $f.a1.a1.a2, $f.a2.a2.a1, $16);
+          case 0: /* nothing */ return $1f => Demo25_UI_Browser_DOM_rf__removeChild('div', $b, $f.a1.a1.a2, $1f);
+          default: return $25 => Demo25_UI_Browser_DOM_throw$('Should not get here while patching dom', $25);
+         }
+        }
+        default: return $2a => Demo25_UI_Browser_DOM_throw$('Should not get here while patching dom', $2a);
+       }
+      }
+      default: return $2f => Demo25_UI_Browser_DOM_throw$('Should not get here while patching dom', $2f);
+     }
+    }
+    default: return $34 => Demo25_UI_Browser_DOM_throw$('Should not get here while patching dom', $34);
+   }
+  }
+  case 0: /* nothing */ {
+   switch($f.a2.h) {
+    case undefined: /* cons */ {
+     switch($f.a2.a1.h) {
+      case 0: /* nothing */ {
+       return $3b => {
+        switch($f.a2.a2.h) {
+         case undefined: /* just */ {
+          const $3d = Demo25_UI_Browser_View_create($0, $f.a2.a2.a1)($3b);
+          return Demo25_UI_Browser_DOM_rf__appendChild('div', $b, $3d, $3b);
+         }
+         case 0: /* nothing */ return undefined;
+         default: return Demo25_UI_Browser_DOM_throw$('Should not get here while patching dom', $3b);
+        }
+       };
+      }
+      default: return $4c => Demo25_UI_Browser_DOM_throw$('Should not get here while patching dom', $4c);
+     }
+    }
+    default: return $51 => Demo25_UI_Browser_DOM_throw$('Should not get here while patching dom', $51);
+   }
+  }
+  default: return $56 => Demo25_UI_Browser_DOM_throw$('Should not get here while patching dom', $56);
+ }
+}
+
+/* Demo25.UI.Browser.View.6627:3816:perChild */
+function Demo25_UI_Browser_View_n__6627_3816_perChild($0, $1, $2, $3, $4, $5, $6, $7, $8, $9, $a, $b, $c, $d) {
+ return Demo25_UI_Browser_View_with__patchx2cperChild_3836($0, undefined, $1, $2, $3, $4, $5, $6, $7, $8, $9, $a, $b, $c, $d, {a1: Demo25_UI_Browser_View_indexMaybe($d, $c), a2: {a1: Demo25_UI_Browser_View_indexMaybe($d, $3), a2: Demo25_UI_Browser_View_indexMaybe($d, $6)}});
+}
+
+/* Demo25.UI.Browser.View.Root.(.render) : Root -> List View -> IO () */
+function Demo25_UI_Browser_View_Root_rf__render($0, $1, $2) {
+ return Demo25_UI_Browser_View_Root_update($0, $1, {h: 0}, $2);
+}
+
+/* Demo25.UI.Browser.View.Root.update : Root -> List View -> List StateUpdate -> IO () */
+function Demo25_UI_Browser_View_Root_update($0, $1, $2, $3) {
+ const $4 = Data_Ref_readRef_Ref_x24io_IORef(csegen_85(), $0.a2)($3);
+ const $c = Prelude_Types_foldl_Foldable_List(states => $f => Data_SortedMap_insert($f.a1, {a1: $f.a2, a2: {a1: $f.a2, a2: $f.a3, a3: $f.a4}}, states), $4, $2);
+ const $1c = Data_Ref_writeRef_Ref_x24io_IORef(csegen_85(), $0.a2, $c)($3);
+ const $25 = Data_Ref_readRef_Ref_x24io_IORef(csegen_85(), $0.a3)($3);
+ const $2d = Prelude_Basics_flip($30 => $31 => Data_List_Extra_mapi($30, $31), $1, index => view => Demo25_UI_View_unfold(Data_SortedMap_Dependent_empty(csegen_97()), $c, {a1: {a1: 'root', a2: Prelude_Show_show_Show_Nat(index)}, a2: {h: 0}}, view));
+ const $45 = Data_Ref_writeRef_Ref_x24io_IORef(csegen_85(), $0.a3, $2d)($3);
+ const $4e = Demo25_UI_Browser_DOM_window($3);
+ const $51 = Demo25_UI_Browser_DOM_rf__document($4e, $3);
+ return Demo25_UI_Browser_DOM_rf__startViewTransition($51, $58 => $59 => Demo25_UI_Browser_View_patch($5c => $5d => Demo25_UI_Browser_View_Root_update($0, $1, $5c, $5d), 'div', $0.a1, {h: 2 /* Flex */, a1: 1, a2: Demo25_UI_Style_FlexStyle_defaultFlexStyle(), a3: {h: 0}, a4: $25}, $0.a1, {h: 2 /* Flex */, a1: 1, a2: Demo25_UI_Style_FlexStyle_defaultFlexStyle(), a3: {h: 0}, a4: $2d}, $59), $3);
+}
+
+/* Demo25.UI.Browser.View.patch : (List StateUpdate -> IO ()) -> HasChildren tag =>
+Element tag -> (oldView : View) ->
+Element (viewToElementTag oldView) -> View -> IO () */
+function Demo25_UI_Browser_View_patch($0, $1, $2, $3, $4, $5, $6) {
+ switch($3.h) {
+  case 0: /* Text */ {
+   switch($5.h) {
+    case 0: /* Text */ {
+     let $9;
+     switch(Prelude_EqOrd_x2fx3d_Eq_String($5.a3, $3.a3)) {
+      case 1: {
+       $9 = Demo25_UI_Browser_DOM_rf__innerText_set($4, $5.a3, $6);
+       break;
+      }
+      case 0: {
+       $9 = undefined;
+       break;
+      }
+     }
+     const $12 = Demo25_UI_Browser_DOM_rf__onclick_set($4, event => $0($5.a2), $6);
+     return Demo25_UI_Browser_Style_updateTextStyle($4, {a1: $3.a1}, $5.a1, $6);
+    }
+    default: {
+     const $1f = Demo25_UI_Browser_View_create($0, $5)($6);
+     return Demo25_UI_Browser_DOM_rf__replaceChild($1, $2, $1f, $4)($6);
+    }
+   }
+  }
+  case 1: /* Input */ {
+   switch($5.h) {
+    case 1: /* Input */ {
+     let $2d;
+     switch(Prelude_EqOrd_x2fx3d_Eq_String($5.a2, $3.a2)) {
+      case 1: {
+       $2d = Demo25_UI_Browser_DOM_rf__value_set($4, $5.a2, $6);
+       break;
+      }
+      case 0: {
+       $2d = undefined;
+       break;
+      }
+     }
+     const $39 = event => $3a => {
+      const $3b = Demo25_UI_Browser_DOM_rf__currentTarget(event)($3a);
+      const $40 = Demo25_UI_Browser_DOM_rf__value($3b, $3a);
+      return $0($5.a3($40))($3a);
+     };
+     const $36 = Demo25_UI_Browser_DOM_rf__oninput_set($4, $39, $6);
+     return Demo25_UI_Browser_Style_updateInputStyle($4, {a1: $3.a1}, $5.a1, $6);
+    }
+    default: {
+     const $51 = Demo25_UI_Browser_View_create($0, $5)($6);
+     return Demo25_UI_Browser_DOM_rf__replaceChild($1, $2, $51, $4)($6);
+    }
+   }
+  }
+  case 2: /* Flex */ {
+   switch($5.h) {
+    case 2: /* Flex */ {
+     let $5f;
+     switch(Demo25_UI_View_x2fx3d_Eq_Direction($5.a1, $3.a1)) {
+      case 1: {
+       const $64 = Demo25_UI_Browser_DOM_rf__style($4, $6);
+       let $6b;
+       switch($5.a1) {
+        case 1: {
+         $6b = 'column';
+         break;
+        }
+        case 0: {
+         $6b = 'row';
+         break;
+        }
+       }
+       $5f = Demo25_UI_Browser_DOM_rf__set($64, 'flexDirection', $6b, $6);
+       break;
+      }
+      case 0: {
+       $5f = undefined;
+       break;
+      }
+     }
+     const $6e = Demo25_UI_Browser_DOM_rf__children('div', $4, $6);
+     const $73 = Prelude_Interfaces_sequence_(csegen_78(), csegen_113(), Prelude_Types_List_mapAppend({h: 0}, $7e => Demo25_UI_Browser_View_n__6627_3816_perChild($0, $1, $3.a3, $3.a4, $3.a2, $3.a1, $5.a4, $5.a3, $5.a2, $5.a1, $4, $2, $6e, $7e), Prelude_Types_rangeFromTo_Range_Nat(0n, Prelude_Types_max_Ord_Nat(Prelude_Types_List_lengthTR($3.a4), Prelude_Types_List_lengthTR($5.a4)))))($6);
+     const $9a = Demo25_UI_Browser_DOM_rf__onclick_set($4, event => $0($5.a3), $6);
+     return Demo25_UI_Browser_Style_updateFlexStyle($4, {a1: $3.a2}, $5.a2, $6);
+    }
+    default: {
+     const $a7 = Demo25_UI_Browser_View_create($0, $5)($6);
+     return Demo25_UI_Browser_DOM_rf__replaceChild($1, $2, $a7, $4)($6);
+    }
+   }
+  }
+  default: {
+   const $b4 = Demo25_UI_Browser_View_create($0, $5)($6);
+   return Demo25_UI_Browser_DOM_rf__replaceChild($1, $2, $b4, $4)($6);
+  }
+ }
+}
+
+/* Demo25.UI.Browser.View.create : (List StateUpdate -> IO ()) -> (view : View) ->
+IO (Element (viewToElementTag view)) */
+function Demo25_UI_Browser_View_create($0, $1) {
+ switch($1.h) {
+  case 0: /* Text */ {
+   return $3 => {
+    const $5 = Demo25_UI_Browser_DOM_window($3);
+    const $8 = Demo25_UI_Browser_DOM_rf__document($5, $3);
+    const $4 = Demo25_UI_Browser_DOM_rf__createElement($8, 'span', 'span', $3);
+    const $11 = Demo25_UI_Browser_DOM_rf__innerText_set($4, $1.a3, $3);
+    const $16 = Demo25_UI_Browser_DOM_rf__onclick_set($4, event => $0($1.a2), $3);
+    const $1d = Demo25_UI_Browser_Style_updateTextStyle($4, {h: 0}, $1.a1, $3);
+    return $4;
+   };
+  }
+  case 2: /* Flex */ {
+   return $23 => {
+    const $25 = Demo25_UI_Browser_DOM_window($23);
+    const $28 = Demo25_UI_Browser_DOM_rf__document($25, $23);
+    const $24 = Demo25_UI_Browser_DOM_rf__createElement($28, 'div', 'div', $23);
+    const $3b = view => $3c => {
+     const $3d = Demo25_UI_Browser_View_create($0, view)($3c);
+     return Demo25_UI_Browser_DOM_rf__appendChild('div', $24, $3d, $3c);
+    };
+    const $38 = Prelude_Types_List_mapAppend({h: 0}, $3b, $1.a4);
+    const $32 = Prelude_Interfaces_sequence_(csegen_78(), csegen_113(), $38);
+    const $31 = $32($23);
+    const $4a = Demo25_UI_Browser_DOM_rf__onclick_set($24, event => $0($1.a3), $23);
+    const $51 = Demo25_UI_Browser_Style_updateFlexStyle($24, {h: 0}, $1.a2, $23);
+    const $57 = Demo25_UI_Browser_DOM_rf__style($24, $23);
+    const $5b = Demo25_UI_Browser_DOM_rf__set($57, 'box-sizing', 'border-box', $23);
+    const $61 = Demo25_UI_Browser_DOM_rf__set($57, 'display', 'flex', $23);
+    let $6b;
+    switch($1.a1) {
+     case 1: {
+      $6b = 'column';
+      break;
+     }
+     case 0: {
+      $6b = 'row';
+      break;
+     }
+    }
+    const $67 = Demo25_UI_Browser_DOM_rf__set($57, 'flexDirection', $6b, $23);
+    const $6e = Demo25_UI_Browser_DOM_rf__set($57, 'borderStyle', 'solid', $23);
+    return $24;
+   };
+  }
+  case 1: /* Input */ {
+   return $74 => {
+    const $76 = Demo25_UI_Browser_DOM_window($74);
+    const $79 = Demo25_UI_Browser_DOM_rf__document($76, $74);
+    const $75 = Demo25_UI_Browser_DOM_rf__createElement($79, 'input', 'input', $74);
+    const $82 = Demo25_UI_Browser_DOM_rf__value_set($75, $1.a2, $74);
+    const $8a = event => $8b => {
+     const $8c = Demo25_UI_Browser_DOM_rf__currentTarget(event)($8b);
+     const $91 = Demo25_UI_Browser_DOM_rf__value($8c, $8b);
+     return $0($1.a3($91))($8b);
+    };
+    const $87 = Demo25_UI_Browser_DOM_rf__oninput_set($75, $8a, $74);
+    const $9c = Demo25_UI_Browser_Style_updateInputStyle($75, {h: 0}, $1.a1, $74);
+    const $a2 = Demo25_UI_Browser_DOM_rf__style($75, $74);
+    const $a6 = Demo25_UI_Browser_DOM_rf__set($a2, 'border', 'none', $74);
+    const $ac = Demo25_UI_Browser_DOM_rf__set($a2, 'outline', 'none', $74);
+    const $b2 = Demo25_UI_Browser_DOM_rf__set($a2, 'font-family', 'inherit', $74);
+    const $b8 = Demo25_UI_Browser_DOM_rf__set($a2, 'font-size', '16px', $74);
+    const $be = Demo25_UI_Browser_DOM_rf__set($a2, 'background', 'transparent', $74);
+    const $c4 = Demo25_UI_Browser_DOM_rf__set($a2, 'padding', '0', $74);
+    const $ca = Demo25_UI_Browser_DOM_rf__set($a2, 'width', '100%', $74);
+    return $75;
+   };
+  }
+  default: return Demo25_UI_Browser_View_h3()(undefined)(undefined);
+ }
+}
+
+/* Demo25.UI.Browser.View.Root.create : IO Root */
+function Demo25_UI_Browser_View_Root_create($0) {
+ const $2 = Demo25_UI_Browser_DOM_window($0);
+ const $1 = Demo25_UI_Browser_DOM_rf__document($2, $0);
+ const $8 = Demo25_UI_Browser_DOM_rf__createElement($1, 'div', 'div', $0);
+ const $f = Demo25_UI_Browser_DOM_rf__body($1, $0);
+ const $e = Demo25_UI_Browser_DOM_rf__appendChild('body', $f, $8, $0);
+ const $18 = Data_Ref_newRef_Ref_x24io_IORef(csegen_85(), Data_SortedMap_empty({a1: {a1: $22 => $23 => Prelude_Types_x3dx3d_Eq_x28Listx20x24ax29(csegen_117(), $22, $23), a2: $2a => $2b => Prelude_Types_x2fx3d_Eq_x28Listx20x24ax29(csegen_117(), $2a, $2b)}, a2: $32 => $33 => Prelude_Types_compare_Ord_x28Listx20x24ax29(csegen_128(), $32, $33), a3: $3a => $3b => Prelude_Types_x3c_Ord_x28Listx20x24ax29(csegen_128(), $3a, $3b), a4: $42 => $43 => Prelude_Types_x3e_Ord_x28Listx20x24ax29(csegen_128(), $42, $43), a5: $4a => $4b => Prelude_Types_x3cx3d_Ord_x28Listx20x24ax29(csegen_128(), $4a, $4b), a6: $52 => $53 => Prelude_Types_x3ex3d_Ord_x28Listx20x24ax29(csegen_128(), $52, $53), a7: $5a => $5b => Prelude_Types_max_Ord_x28Listx20x24ax29(csegen_128(), $5a, $5b), a8: $62 => $63 => Prelude_Types_min_Ord_x28Listx20x24ax29(csegen_128(), $62, $63)}))($0);
+ const $6a = Data_Ref_newRef_Ref_x24io_IORef(csegen_85(), {h: 0})($0);
+ const $71 = {a1: $8, a2: $18, a3: $6a};
+ return $71;
+}
+
+/* Demo25.UI.Browser.Style.updateTextStyle : Element tag -> Maybe TextStyle -> TextStyle -> IO () */
+function Demo25_UI_Browser_Style_updateTextStyle($0, $1, $2, $3) {
+ const $4 = Demo25_UI_Browser_DOM_rf__style($0, $3);
+ const $8 = $9 => $a => $b => $c => Demo25_UI_Browser_Style_updateStyleFactory($1, $2, $9, $a, $b, $c);
+ const $14 = $8({h: 'String'})(csegen_89())(style => style.a1.a1)(value => $21 => Demo25_UI_Browser_DOM_rf__set($4, 'fontFamily', value, $21))($3);
+ const $28 = $8({h: 'Demo25.UI.Style.DensitiyIndipendentPixels.DensitiyIndipendentPixels'})(csegen_143())(style => style.a1.a2)(value => $35 => Demo25_UI_Browser_DOM_rf__set($4, 'fontSize', Demo25_UI_Browser_Style_dipToRem(value), $35))($3);
+ const $3e = $8({h: 'Builtin.DPair.DPair', a1: {h: 'Int'}, a2: fw => ({h: 'Demo25.UI.Style.FotnWeight.FontWeightInterface', a1: fw})})({a1: $4a => $4b => Demo25_UI_Style_FotnWeight_x3dx3d_Eq_x28x28Builtinx2eDPairx2eDPairx20Intx29x20x28x25lamx20RigWx20Explicitx20x28Justx20fwx29x20Intx20x28FontWeightInterfacex20fwx29x29x29($4a, $4b), a2: $50 => $51 => Demo25_UI_Style_FotnWeight_x2fx3d_Eq_x28x28Builtinx2eDPairx2eDPairx20Intx29x20x28x25lamx20RigWx20Explicitx20x28Justx20fwx29x20Intx20x28FontWeightInterfacex20fwx29x29x29($50, $51)})(style => style.a1.a3)(value => $59 => Demo25_UI_Browser_DOM_rf__set($4, 'fontWeight', Prelude_Show_show_Show_Int(value.a1), $59))($3);
+ const $7a = value => {
+  let $7b;
+  switch(value) {
+   case 0: {
+    $7b = 'normal';
+    break;
+   }
+   case 1: {
+    $7b = 'italic';
+    break;
+   }
+  }
+  return $7d => Demo25_UI_Browser_DOM_rf__set($4, 'fontStyle', $7b, $7d);
+ };
+ const $64 = $8({h: 'Demo25.UI.Style.FontStyle.FontStyle'})({a1: $6c => $6d => Demo25_UI_Style_FontStyle_x3dx3d_Eq_FontStyle($6c, $6d), a2: $72 => $73 => Demo25_UI_Style_FontStyle_x2fx3d_Eq_FontStyle($72, $73)})(style => style.a1.a4)($7a);
+ const $63 = $64($3);
+ const $84 = $8({h: 'Demo25.UI.Style.Color.Color'})(csegen_156())(style => style.a2)(value => $90 => Demo25_UI_Browser_DOM_rf__set($4, 'color', Demo25_UI_Browser_Style_colorToRGBA(value), $90))($3);
+ const $af = value => {
+  let $b0;
+  switch(value) {
+   case 0: {
+    $b0 = 'left';
+    break;
+   }
+   case 1: {
+    $b0 = 'right';
+    break;
+   }
+   case 2: {
+    $b0 = 'center';
+    break;
+   }
+   case 3: {
+    $b0 = 'justify';
+    break;
+   }
+  }
+  return $b2 => Demo25_UI_Browser_DOM_rf__set($4, 'textAlign', $b0, $b2);
+ };
+ const $9a = $8({h: 'Demo25.UI.Style.TextAlign.TextAlign'})({a1: $a2 => $a3 => Demo25_UI_Style_TextAlign_x3dx3d_Eq_TextAlign($a2, $a3), a2: $a8 => $a9 => Demo25_UI_Style_TextAlign_x2fx3d_Eq_TextAlign($a8, $a9)})(style => style.a3)($af);
+ const $99 = $9a($3);
+ const $b9 = $8({h: 'Double'})(csegen_164())(style => style.a4)(value => $c5 => Demo25_UI_Browser_DOM_rf__set($4, 'lineHeight', Prelude_Show_show_Show_Double(value), $c5))($3);
+ const $d8 = value => $d9 => {
+  let $dd;
+  switch(value) {
+   case 1: {
+    $dd = 'auto';
+    break;
+   }
+   case 0: {
+    $dd = 'none';
+    break;
+   }
+  }
+  return Demo25_UI_Browser_DOM_rf__set($4, 'userSelect', $dd, $d9);
+ };
+ const $ce = $8({h: 'Prelude.Basics.Bool'})(csegen_168())(style => style.a5)($d8);
+ return $ce($3);
+}
+
+/* Demo25.UI.Browser.Style.updateStyleFactory : Maybe style_t -> style_t -> Eq attribute =>
+(style_t -> attribute) -> (attribute -> IO ()) -> IO () */
+function Demo25_UI_Browser_Style_updateStyleFactory($0, $1, $2, $3, $4, $5) {
+ switch($0.h) {
+  case undefined: /* just */ {
+   const $7 = $4($0.a1);
+   const $a = $4($1);
+   switch($3.a2($a)($7)) {
+    case 1: return $5($a);
+    case 0: return $15 => (undefined);
+   }
+  }
+  case 0: /* nothing */ {
+   const $16 = $4($1);
+   return $5($16);
+  }
+ }
+}
+
+/* Demo25.UI.Browser.Style.updateInputStyle : Element tag -> Maybe InputStyle -> InputStyle -> IO () */
+function Demo25_UI_Browser_Style_updateInputStyle($0, $1, $2, $3) {
+ const $4 = Demo25_UI_Browser_DOM_rf__style($0, $3);
+ const $8 = $9 => $a => $b => $c => Demo25_UI_Browser_Style_updateStyleFactory($1, $2, $9, $a, $b, $c);
+ return $8({h: 'Demo25.UI.Style.Color.Color'})(csegen_156())(style => style)(value => $1e => Demo25_UI_Browser_DOM_rf__set($4, 'color', Demo25_UI_Browser_Style_colorToRGBA(value), $1e))($3);
+}
+
+/* Demo25.UI.Browser.Style.updateFlexStyle : Element tag -> Maybe FlexStyle -> FlexStyle -> IO () */
+function Demo25_UI_Browser_Style_updateFlexStyle($0, $1, $2, $3) {
+ const $4 = Demo25_UI_Browser_DOM_rf__style($0, $3);
+ const $8 = $9 => $a => $b => $c => Demo25_UI_Browser_Style_updateStyleFactory($1, $2, $9, $a, $b, $c);
+ const $14 = $8({h: 'Demo25.UI.Style.DensitiyIndipendentPixels.DensitiyIndipendentPixels'})(csegen_143())(style => style.a1.a1)(value => $21 => Demo25_UI_Browser_DOM_rf__set($4, 'marginTop', Demo25_UI_Browser_Style_dipToRem(value), $21))($3);
+ const $2a = $8({h: 'Demo25.UI.Style.DensitiyIndipendentPixels.DensitiyIndipendentPixels'})(csegen_143())(style => style.a1.a2)(value => $37 => Demo25_UI_Browser_DOM_rf__set($4, 'marginRight', Demo25_UI_Browser_Style_dipToRem(value), $37))($3);
+ const $40 = $8({h: 'Demo25.UI.Style.DensitiyIndipendentPixels.DensitiyIndipendentPixels'})(csegen_143())(style => style.a1.a3)(value => $4d => Demo25_UI_Browser_DOM_rf__set($4, 'marginBottom', Demo25_UI_Browser_Style_dipToRem(value), $4d))($3);
+ const $56 = $8({h: 'Demo25.UI.Style.DensitiyIndipendentPixels.DensitiyIndipendentPixels'})(csegen_143())(style => style.a1.a4)(value => $63 => Demo25_UI_Browser_DOM_rf__set($4, 'marginLeft', Demo25_UI_Browser_Style_dipToRem(value), $63))($3);
+ const $6c = $8({h: 'Demo25.UI.Style.DensitiyIndipendentPixels.DensitiyIndipendentPixels'})(csegen_143())(style => style.a2.a1)(value => $79 => Demo25_UI_Browser_DOM_rf__set($4, 'paddingTop', Demo25_UI_Browser_Style_dipToRem(value), $79))($3);
+ const $82 = $8({h: 'Demo25.UI.Style.DensitiyIndipendentPixels.DensitiyIndipendentPixels'})(csegen_143())(style => style.a2.a2)(value => $8f => Demo25_UI_Browser_DOM_rf__set($4, 'paddingRight', Demo25_UI_Browser_Style_dipToRem(value), $8f))($3);
+ const $98 = $8({h: 'Demo25.UI.Style.DensitiyIndipendentPixels.DensitiyIndipendentPixels'})(csegen_143())(style => style.a2.a3)(value => $a5 => Demo25_UI_Browser_DOM_rf__set($4, 'paddingBottom', Demo25_UI_Browser_Style_dipToRem(value), $a5))($3);
+ const $ae = $8({h: 'Demo25.UI.Style.DensitiyIndipendentPixels.DensitiyIndipendentPixels'})(csegen_143())(style => style.a2.a4)(value => $bb => Demo25_UI_Browser_DOM_rf__set($4, 'paddingLeft', Demo25_UI_Browser_Style_dipToRem(value), $bb))($3);
+ const $c4 = $8({h: 'Demo25.UI.Style.DensitiyIndipendentPixels.DensitiyIndipendentPixels'})(csegen_143())(style => style.a3.a1.a1)(value => $d2 => Demo25_UI_Browser_DOM_rf__set($4, 'borderTopWidth', Demo25_UI_Browser_Style_dipToRem(value), $d2))($3);
+ const $db = $8({h: 'Demo25.UI.Style.DensitiyIndipendentPixels.DensitiyIndipendentPixels'})(csegen_143())(style => style.a3.a1.a2)(value => $e9 => Demo25_UI_Browser_DOM_rf__set($4, 'borderRightWidth', Demo25_UI_Browser_Style_dipToRem(value), $e9))($3);
+ const $f2 = $8({h: 'Demo25.UI.Style.DensitiyIndipendentPixels.DensitiyIndipendentPixels'})(csegen_143())(style => style.a3.a1.a3)(value => $100 => Demo25_UI_Browser_DOM_rf__set($4, 'borderBottomWidth', Demo25_UI_Browser_Style_dipToRem(value), $100))($3);
+ const $109 = $8({h: 'Demo25.UI.Style.DensitiyIndipendentPixels.DensitiyIndipendentPixels'})(csegen_143())(style => style.a3.a1.a4)(value => $117 => Demo25_UI_Browser_DOM_rf__set($4, 'borderLeftWidth', Demo25_UI_Browser_Style_dipToRem(value), $117))($3);
+ const $120 = $8({h: 'Demo25.UI.Style.Color.Color'})(csegen_156())(style => style.a3.a2.a1)(value => $12e => Demo25_UI_Browser_DOM_rf__set($4, 'borderTopColor', Demo25_UI_Browser_Style_colorToRGBA(value), $12e))($3);
+ const $137 = $8({h: 'Demo25.UI.Style.Color.Color'})(csegen_156())(style => style.a3.a2.a2)(value => $145 => Demo25_UI_Browser_DOM_rf__set($4, 'borderRightColor', Demo25_UI_Browser_Style_colorToRGBA(value), $145))($3);
+ const $14e = $8({h: 'Demo25.UI.Style.Color.Color'})(csegen_156())(style => style.a3.a2.a3)(value => $15c => Demo25_UI_Browser_DOM_rf__set($4, 'borderBottomColor', Demo25_UI_Browser_Style_colorToRGBA(value), $15c))($3);
+ const $165 = $8({h: 'Demo25.UI.Style.Color.Color'})(csegen_156())(style => style.a3.a2.a4)(value => $173 => Demo25_UI_Browser_DOM_rf__set($4, 'borderLeftColor', Demo25_UI_Browser_Style_colorToRGBA(value), $173))($3);
+ const $17c = $8({h: 'Demo25.UI.Style.DensitiyIndipendentPixels.DensitiyIndipendentPixels'})(csegen_143())(style => style.a3.a3.a1)(value => $18a => Demo25_UI_Browser_DOM_rf__set($4, 'borderTopLeftRadius', Demo25_UI_Browser_Style_dipToRem(value), $18a))($3);
+ const $193 = $8({h: 'Demo25.UI.Style.DensitiyIndipendentPixels.DensitiyIndipendentPixels'})(csegen_143())(style => style.a3.a3.a2)(value => $1a1 => Demo25_UI_Browser_DOM_rf__set($4, 'borderTopRightRadius', Demo25_UI_Browser_Style_dipToRem(value), $1a1))($3);
+ const $1aa = $8({h: 'Demo25.UI.Style.DensitiyIndipendentPixels.DensitiyIndipendentPixels'})(csegen_143())(style => style.a3.a3.a3)(value => $1b8 => Demo25_UI_Browser_DOM_rf__set($4, 'borderBottomRightRadius', Demo25_UI_Browser_Style_dipToRem(value), $1b8))($3);
+ const $1c1 = $8({h: 'Demo25.UI.Style.DensitiyIndipendentPixels.DensitiyIndipendentPixels'})(csegen_143())(style => style.a3.a3.a4)(value => $1cf => Demo25_UI_Browser_DOM_rf__set($4, 'borderBottomLeftRadius', Demo25_UI_Browser_Style_dipToRem(value), $1cf))($3);
+ const $1d8 = $8({h: 'Demo25.UI.Style.Color.Color'})(csegen_156())(style => style.a4)(value => $1e4 => Demo25_UI_Browser_DOM_rf__set($4, 'backgroundColor', Demo25_UI_Browser_Style_colorToRGBA(value), $1e4))($3);
+ const $1ed = $8({h: 'Demo25.UI.Style.DensitiyIndipendentPixels.DensitiyIndipendentPixels'})(csegen_143())(style => style.a5.a2)(value => $1fa => Demo25_UI_Browser_DOM_rf__set($4, 'rowGap', Demo25_UI_Browser_Style_dipToRem(value), $1fa))($3);
+ const $203 = $8({h: 'Demo25.UI.Style.DensitiyIndipendentPixels.DensitiyIndipendentPixels'})(csegen_143())(style => style.a5.a1)(value => $210 => Demo25_UI_Browser_DOM_rf__set($4, 'columnGap', Demo25_UI_Browser_Style_dipToRem(value), $210))($3);
+ const $224 = value => $225 => {
+  switch(value) {
+   case 1: return Demo25_UI_Browser_DOM_rf__set($4, 'flexWrap', 'wrap', $225);
+   case 0: return Demo25_UI_Browser_DOM_rf__set($4, 'flexWrap', 'nowrap', $225);
+  }
+ };
+ const $21a = $8({h: 'Prelude.Basics.Bool'})(csegen_168())(style => style.a6)($224);
+ const $219 = $21a($3);
+ const $248 = value => {
+  let $249;
+  switch(value) {
+   case 0: {
+    $249 = 'flex-start';
+    break;
+   }
+   case 1: {
+    $249 = 'flex-end';
+    break;
+   }
+   case 2: {
+    $249 = 'center';
+    break;
+   }
+  }
+  return $24b => Demo25_UI_Browser_DOM_rf__set($4, 'justifyContent', $249, $24b);
+ };
+ const $233 = $8({h: 'Demo25.UI.Style.FlexJustify.FlexJustify'})({a1: $23b => $23c => Demo25_UI_Style_FlexJustify_x3dx3d_Eq_FlexJustify($23b, $23c), a2: $241 => $242 => Demo25_UI_Style_FlexJustify_x2fx3d_Eq_FlexJustify($241, $242)})(style => style.a7)($248);
+ const $232 = $233($3);
+ const $268 = value => {
+  let $269;
+  switch(value) {
+   case 0: {
+    $269 = 'flex-start';
+    break;
+   }
+   case 1: {
+    $269 = 'flex-end';
+    break;
+   }
+   case 2: {
+    $269 = 'center';
+    break;
+   }
+  }
+  return $26b => Demo25_UI_Browser_DOM_rf__set($4, 'alignSelf', $269, $26b);
+ };
+ const $253 = $8({h: 'Demo25.UI.Style.FlexAlign.FlexAlign'})({a1: $25b => $25c => Demo25_UI_Style_FlexAlign_x3dx3d_Eq_FlexAlign($25b, $25c), a2: $261 => $262 => Demo25_UI_Style_FlexAlign_x2fx3d_Eq_FlexAlign($261, $262)})(style => style.a8)($268);
+ const $252 = $253($3);
+ const $272 = $8({h: 'Double'})(csegen_164())(style => style.a9)(value => $27e => Demo25_UI_Browser_DOM_rf__set($4, 'flexGrow', Prelude_Show_show_Show_Double(value), $27e))($3);
+ const $292 = value => $293 => {
+  switch(Demo25_UI_Style_BoxSize_x3dx3d_Eq_BoxSizeUnit(value.a1, value.a2)) {
+   case 1: return Demo25_UI_Browser_DOM_rf__set($4, 'width', Demo25_UI_Browser_Style_boxSizeUnitToCSSUnit(value.a1), $293);
+   case 0: {
+    const $2a2 = Demo25_UI_Browser_DOM_rf__set($4, 'minWidth', Demo25_UI_Browser_Style_boxSizeUnitToCSSUnit(value.a1), $293);
+    return Demo25_UI_Browser_DOM_rf__set($4, 'maxWidth', Demo25_UI_Browser_Style_boxSizeUnitToCSSUnit(value.a2), $293);
+   }
+  }
+ };
+ const $288 = $8({h: 'Demo25.UI.Style.BoxSize.BoxSize'})(csegen_205())(style => style.a10)($292);
+ const $287 = $288($3);
+ const $2be = value => $2bf => {
+  switch(Demo25_UI_Style_BoxSize_x3dx3d_Eq_BoxSizeUnit(value.a1, value.a2)) {
+   case 1: return Demo25_UI_Browser_DOM_rf__set($4, 'height', Demo25_UI_Browser_Style_boxSizeUnitToCSSUnit(value.a1), $2bf);
+   case 0: {
+    const $2ce = Demo25_UI_Browser_DOM_rf__set($4, 'minHeight', Demo25_UI_Browser_Style_boxSizeUnitToCSSUnit(value.a1), $2bf);
+    return Demo25_UI_Browser_DOM_rf__set($4, 'maxHeight', Demo25_UI_Browser_Style_boxSizeUnitToCSSUnit(value.a2), $2bf);
+   }
+  }
+ };
+ const $2b4 = $8({h: 'Demo25.UI.Style.BoxSize.BoxSize'})(csegen_205())(style => style.a11)($2be);
+ return $2b4($3);
+}
+
+/* Demo25.UI.Browser.Style.doubleDipToRem : Double -> String */
+function Demo25_UI_Browser_Style_doubleDipToRem($0) {
+ return Prelude_Types_foldMap_Foldable_List(csegen_209(), $5 => $5, {a1: Prelude_Show_show_Show_Double(($0/16.0)), a2: {a1: 'rem', a2: {h: 0}}});
+}
+
+/* Demo25.UI.Browser.Style.dipToRem : DensitiyIndipendentPixels -> String */
+function Demo25_UI_Browser_Style_dipToRem($0) {
+ return Demo25_UI_Browser_Style_doubleDipToRem($0);
+}
+
+/* Demo25.UI.Browser.Style.colorToRGBA : Color -> String */
+function Demo25_UI_Browser_Style_colorToRGBA($0) {
+ const $1 = Demo25_UI_Style_Color_toRGBA($0);
+ return Prelude_Types_foldMap_Foldable_List(csegen_209(), $a => $a, {a1: 'rgba(', a2: {a1: Prelude_Show_show_Show_Integer($1.a1), a2: {a1: ', ', a2: {a1: Prelude_Show_show_Show_Integer($1.a2.a1), a2: {a1: ', ', a2: {a1: Prelude_Show_show_Show_Integer($1.a2.a2.a1), a2: {a1: ', ', a2: {a1: Prelude_Show_show_Show_Double($1.a2.a2.a2), a2: {a1: ')', a2: {h: 0}}}}}}}}}});
+}
+
+/* Demo25.UI.Browser.Style.boxSizeUnitToCSSUnit : BoxSizeUnit -> String */
+function Demo25_UI_Browser_Style_boxSizeUnitToCSSUnit($0) {
+ switch($0.h) {
+  case 0: /* BoxSizeUnitDensitiyIndipendentPixels */ return Demo25_UI_Browser_Style_doubleDipToRem($0.a1);
+  case 1: /* BoxSizeUnitParentSizeFraction */ return Prelude_Types_foldMap_Foldable_List(csegen_209(), $8 => $8, {a1: Prelude_Show_show_Show_Double(($0.a1*Number(100n))), a2: {a1: '%', a2: {h: 0}}});
+ }
+}
+
+/* Demo25.UI.Style.TextAlign.== */
+function Demo25_UI_Style_TextAlign_x3dx3d_Eq_TextAlign($0, $1) {
+ switch($0) {
+  case 0: {
+   switch($1) {
+    case 0: return 1;
+    default: return 0;
+   }
+  }
+  case 1: {
+   switch($1) {
+    case 1: return 1;
+    default: return 0;
+   }
+  }
+  case 2: {
+   switch($1) {
+    case 2: return 1;
+    default: return 0;
+   }
+  }
+  case 3: {
+   switch($1) {
+    case 3: return 1;
+    default: return 0;
+   }
+  }
+  default: return 0;
+ }
+}
+
+/* Demo25.UI.Style.FontStyle.== */
+function Demo25_UI_Style_FontStyle_x3dx3d_Eq_FontStyle($0, $1) {
+ switch($0) {
+  case 0: {
+   switch($1) {
+    case 0: return 1;
+    default: return 0;
+   }
+  }
+  case 1: {
+   switch($1) {
+    case 1: return 1;
+    default: return 0;
+   }
+  }
+  default: return 0;
+ }
+}
+
+/* Demo25.UI.Style.FlexJustify.== */
+function Demo25_UI_Style_FlexJustify_x3dx3d_Eq_FlexJustify($0, $1) {
+ switch($0) {
+  case 0: {
+   switch($1) {
+    case 0: return 1;
+    default: return 0;
+   }
+  }
+  case 1: {
+   switch($1) {
+    case 1: return 1;
+    default: return 0;
+   }
+  }
+  case 2: {
+   switch($1) {
+    case 2: return 1;
+    default: return 0;
+   }
+  }
+  default: return 0;
+ }
+}
+
+/* Demo25.UI.Style.FlexAlign.== */
+function Demo25_UI_Style_FlexAlign_x3dx3d_Eq_FlexAlign($0, $1) {
+ switch($0) {
+  case 0: {
+   switch($1) {
+    case 0: return 1;
+    default: return 0;
+   }
+  }
+  case 1: {
+   switch($1) {
+    case 1: return 1;
+    default: return 0;
+   }
+  }
+  case 2: {
+   switch($1) {
+    case 2: return 1;
+    default: return 0;
+   }
+  }
+  default: return 0;
+ }
+}
+
+/* Demo25.UI.Style.DensitiyIndipendentPixels.== */
+function Demo25_UI_Style_DensitiyIndipendentPixels_x3dx3d_Eq_DensitiyIndipendentPixels($0, $1) {
+ return Prelude_EqOrd_x3dx3d_Eq_Double($0, $1);
+}
+
+/* Demo25.UI.Style.Color.== */
+function Demo25_UI_Style_Color_x3dx3d_Eq_Color($0, $1) {
+ switch(Data_Fin_x3dx3d_Eq_x28Finx20x24nx29($0.a1, $1.a1)) {
+  case 1: {
+   switch(Data_Fin_x3dx3d_Eq_x28Finx20x24nx29($0.a2, $1.a2)) {
+    case 1: {
+     switch(Data_Fin_x3dx3d_Eq_x28Finx20x24nx29($0.a3, $1.a3)) {
+      case 1: return Prelude_EqOrd_x3dx3d_Eq_Double($0.a4, $1.a4);
+      case 0: return 0;
+     }
+    }
+    case 0: return 0;
+   }
+  }
+  case 0: return 0;
+ }
+}
+
+/* Demo25.UI.Style.BoxSize.== */
+function Demo25_UI_Style_BoxSize_x3dx3d_Eq_BoxSizeUnit($0, $1) {
+ switch($0.h) {
+  case 0: /* BoxSizeUnitDensitiyIndipendentPixels */ {
+   switch($1.h) {
+    case 0: /* BoxSizeUnitDensitiyIndipendentPixels */ return Prelude_EqOrd_x3dx3d_Eq_Double($0.a1, $1.a1);
+    default: return 0;
+   }
+  }
+  case 1: /* BoxSizeUnitParentSizeFraction */ {
+   switch($1.h) {
+    case 1: /* BoxSizeUnitParentSizeFraction */ return Prelude_EqOrd_x3dx3d_Eq_Double($0.a1, $1.a1);
+    default: return 0;
+   }
+  }
+  default: return 0;
+ }
+}
+
+/* Demo25.UI.Style.BoxSize.== */
+function Demo25_UI_Style_BoxSize_x3dx3d_Eq_BoxSize($0, $1) {
+ switch(Demo25_UI_Style_BoxSize_x3dx3d_Eq_BoxSizeUnit($0.a1, $1.a1)) {
+  case 1: return Demo25_UI_Style_BoxSize_x3dx3d_Eq_BoxSizeUnit($0.a2, $1.a2);
+  case 0: return 0;
+ }
+}
+
+/* Demo25.UI.Style.FotnWeight.== */
+function Demo25_UI_Style_FotnWeight_x3dx3d_Eq_x28x28Builtinx2eDPairx2eDPairx20Intx29x20x28x25lamx20RigWx20Explicitx20x28Justx20fwx29x20Intx20x28FontWeightInterfacex20fwx29x29x29($0, $1) {
+ return Prelude_EqOrd_x3dx3d_Eq_Int($0.a1, $1.a1);
+}
+
+/* Demo25.UI.Style.TextAlign./= */
+function Demo25_UI_Style_TextAlign_x2fx3d_Eq_TextAlign($0, $1) {
+ switch(Demo25_UI_Style_TextAlign_x3dx3d_Eq_TextAlign($0, $1)) {
+  case 1: return 0;
+  case 0: return 1;
+ }
+}
+
+/* Demo25.UI.Style.FontStyle./= */
+function Demo25_UI_Style_FontStyle_x2fx3d_Eq_FontStyle($0, $1) {
+ switch(Demo25_UI_Style_FontStyle_x3dx3d_Eq_FontStyle($0, $1)) {
+  case 1: return 0;
+  case 0: return 1;
+ }
+}
+
+/* Demo25.UI.Style.FlexJustify./= */
+function Demo25_UI_Style_FlexJustify_x2fx3d_Eq_FlexJustify($0, $1) {
+ switch(Demo25_UI_Style_FlexJustify_x3dx3d_Eq_FlexJustify($0, $1)) {
+  case 1: return 0;
+  case 0: return 1;
+ }
+}
+
+/* Demo25.UI.Style.FlexAlign./= */
+function Demo25_UI_Style_FlexAlign_x2fx3d_Eq_FlexAlign($0, $1) {
+ switch(Demo25_UI_Style_FlexAlign_x3dx3d_Eq_FlexAlign($0, $1)) {
+  case 1: return 0;
+  case 0: return 1;
+ }
+}
+
+/* Demo25.UI.Style.DensitiyIndipendentPixels./= */
+function Demo25_UI_Style_DensitiyIndipendentPixels_x2fx3d_Eq_DensitiyIndipendentPixels($0, $1) {
+ switch(Demo25_UI_Style_DensitiyIndipendentPixels_x3dx3d_Eq_DensitiyIndipendentPixels($0, $1)) {
+  case 1: return 0;
+  case 0: return 1;
+ }
+}
+
+/* Demo25.UI.Style.Color./= */
+function Demo25_UI_Style_Color_x2fx3d_Eq_Color($0, $1) {
+ switch(Demo25_UI_Style_Color_x3dx3d_Eq_Color($0, $1)) {
+  case 1: return 0;
+  case 0: return 1;
+ }
+}
+
+/* Demo25.UI.Style.BoxSize./= */
+function Demo25_UI_Style_BoxSize_x2fx3d_Eq_BoxSize($0, $1) {
+ switch(Demo25_UI_Style_BoxSize_x3dx3d_Eq_BoxSize($0, $1)) {
+  case 1: return 0;
+  case 0: return 1;
+ }
+}
+
+/* Demo25.UI.Style.FotnWeight./= */
+function Demo25_UI_Style_FotnWeight_x2fx3d_Eq_x28x28Builtinx2eDPairx2eDPairx20Intx29x20x28x25lamx20RigWx20Explicitx20x28Justx20fwx29x20Intx20x28FontWeightInterfacex20fwx29x29x29($0, $1) {
+ switch(Demo25_UI_Style_FotnWeight_x3dx3d_Eq_x28x28Builtinx2eDPairx2eDPairx20Intx29x20x28x25lamx20RigWx20Explicitx20x28Justx20fwx29x20Intx20x28FontWeightInterfacex20fwx29x29x29($0, $1)) {
+  case 1: return 0;
+  case 0: return 1;
+ }
+}
+
+/* Demo25.UI.Style.Color.transparent : Color */
+const Demo25_UI_Style_Color_transparent = __lazy(function () {
+ return Demo25_UI_Style_Color_rgba(0n, 0n, 0n, 0.0);
+});
+
+/* Demo25.UI.Style.Color.toRGBA : Color -> (Fin 256, (Fin 256, (Fin 256, Double))) */
+function Demo25_UI_Style_Color_toRGBA($0) {
+ return {a1: $0.a1, a2: {a1: $0.a2, a2: {a1: $0.a3, a2: $0.a4}}};
+}
+
+/* Demo25.UI.Style.TextStyle.s : {default (defaultTextStyle .font) _ : Font} ->
+{default (defaultTextStyle .color) _ : Color} ->
+{default (defaultTextStyle .align) _ : TextAlign} ->
+{default (defaultTextStyle .lineHeight) _ : Double} ->
+{default (defaultTextStyle .userSelect) _ : Bool} -> TextStyle */
+function Demo25_UI_Style_TextStyle_s($0, $1, $2, $3, $4) {
+ return {a1: $0, a2: $1, a3: $2, a4: $3, a5: $4};
+}
+
+/* Demo25.UI.Style.Padding.s : {default 0 _ : DensitiyIndipendentPixels} ->
+{default all _ : DensitiyIndipendentPixels} ->
+{default all _ : DensitiyIndipendentPixels} ->
+{default vertical _ : DensitiyIndipendentPixels} ->
+{default horizontal _ : DensitiyIndipendentPixels} ->
+{default vertical _ : DensitiyIndipendentPixels} ->
+{default horizontal _ : DensitiyIndipendentPixels} -> Padding */
+function Demo25_UI_Style_Padding_s($0, $1, $2, $3, $4, $5, $6) {
+ return {a1: $3, a2: $4, a3: $5, a4: $6};
+}
+
+/* Demo25.UI.Style.Margin.s : {default 0 _ : DensitiyIndipendentPixels} ->
+{default all _ : DensitiyIndipendentPixels} ->
+{default all _ : DensitiyIndipendentPixels} ->
+{default vertical _ : DensitiyIndipendentPixels} ->
+{default horizontal _ : DensitiyIndipendentPixels} ->
+{default vertical _ : DensitiyIndipendentPixels} ->
+{default horizontal _ : DensitiyIndipendentPixels} -> Margin */
+function Demo25_UI_Style_Margin_s($0, $1, $2, $3, $4, $5, $6) {
+ return {a1: $3, a2: $4, a3: $5, a4: $6};
+}
+
+/* Demo25.UI.Style.Font.s : {default (defaultFont .family) _ : String} ->
+{default (defaultFont .size) _ : DensitiyIndipendentPixels} ->
+{default (defaultFont .weight) _ : (fw : Int ** FontWeightInterface fw)} ->
+{default (defaultFont .style) _ : FontStyle} -> Font */
+function Demo25_UI_Style_Font_s($0, $1, $2, $3) {
+ return {a1: $0, a2: $1, a3: $2, a4: $3};
+}
+
+/* Demo25.UI.Style.FlexStyle.s : {default (defaultFlexStyle .margin) _ : Margin} ->
+{default (defaultFlexStyle .padding) _ : Padding} ->
+{default (defaultFlexStyle .border) _ : Border} ->
+{default (defaultFlexStyle .background) _ : Color} ->
+{default (defaultFlexStyle .gap) _ : FlexGap} ->
+{default (defaultFlexStyle .wrap) _ : Bool} ->
+{default (defaultFlexStyle .justify) _ : FlexJustify} ->
+{default (defaultFlexStyle .align) _ : FlexAlign} ->
+{default (defaultFlexStyle .grow) _ : Double} ->
+{default (defaultFlexStyle .width) _ : BoxSize} ->
+{default (defaultFlexStyle .height) _ : BoxSize} -> FlexStyle */
+function Demo25_UI_Style_FlexStyle_s($0, $1, $2, $3, $4, $5, $6, $7, $8, $9, $a) {
+ return {a1: $0, a2: $1, a3: $2, a4: $3, a5: $4, a6: $5, a7: $6, a8: $7, a9: $8, a10: $9, a11: $a};
+}
+
+/* Demo25.UI.Style.FlexGap.s : {default 0 _ : DensitiyIndipendentPixels} ->
+{default all _ : DensitiyIndipendentPixels} ->
+{default all _ : DensitiyIndipendentPixels} -> FlexGap */
+function Demo25_UI_Style_FlexGap_s($0, $1, $2) {
+ return {a1: $1, a2: $2};
+}
+
+/* Demo25.UI.Style.BorderWidth.s : {default 0 _ : DensitiyIndipendentPixels} ->
+{default all _ : DensitiyIndipendentPixels} ->
+{default all _ : DensitiyIndipendentPixels} ->
+{default vertical _ : DensitiyIndipendentPixels} ->
+{default horizontal _ : DensitiyIndipendentPixels} ->
+{default vertical _ : DensitiyIndipendentPixels} ->
+{default horizontal _ : DensitiyIndipendentPixels} -> BorderWidth */
+function Demo25_UI_Style_BorderWidth_s($0, $1, $2, $3, $4, $5, $6) {
+ return {a1: $3, a2: $4, a3: $5, a4: $6};
+}
+
+/* Demo25.UI.Style.BorderRadius.s : {default 0 _ : DensitiyIndipendentPixels} ->
+{default all _ : DensitiyIndipendentPixels} ->
+{default all _ : DensitiyIndipendentPixels} ->
+{default all _ : DensitiyIndipendentPixels} ->
+{default all _ : DensitiyIndipendentPixels} ->
+{default (max top left) _ : DensitiyIndipendentPixels} ->
+{default (max top right) _ : DensitiyIndipendentPixels} ->
+{default (max bottom right) _ : DensitiyIndipendentPixels} ->
+{default (max bottom left) _ : DensitiyIndipendentPixels} -> BorderRadius */
+function Demo25_UI_Style_BorderRadius_s($0, $1, $2, $3, $4, $5, $6, $7, $8) {
+ return {a1: $5, a2: $6, a3: $7, a4: $8};
+}
+
+/* Demo25.UI.Style.BorderColor.s : {default (rgb 255 255 255) _ : Color} -> {default all _ : Color} ->
+{default all _ : Color} -> {default vertical _ : Color} ->
+{default horizontal _ : Color} -> {default vertical _ : Color} ->
+{default horizontal _ : Color} -> BorderColor */
+function Demo25_UI_Style_BorderColor_s($0, $1, $2, $3, $4, $5, $6) {
+ return {a1: $3, a2: $4, a3: $5, a4: $6};
+}
+
+/* Demo25.UI.Style.Border.s : {default (defaultBorder .width) _ : BorderWidth} ->
+{default (defaultBorder .color) _ : BorderColor} ->
+{default (defaultBorder .radius) _ : BorderRadius} -> Border */
+function Demo25_UI_Style_Border_s($0, $1, $2) {
+ return {a1: $0, a2: $1, a3: $2};
+}
+
+/* Demo25.UI.Style.Color.rgba : Fin 256 -> Fin 256 -> Fin 256 -> Double -> Color */
+function Demo25_UI_Style_Color_rgba($0, $1, $2, $3) {
+ return {a1: $0, a2: $1, a3: $2, a4: $3};
+}
+
+/* Demo25.UI.Style.Color.rgb : Fin 256 -> Fin 256 -> Fin 256 -> Color */
+function Demo25_UI_Style_Color_rgb($0, $1, $2) {
+ return {a1: $0, a2: $1, a3: $2, a4: 1.0};
+}
+
+/* Demo25.UI.Style.BoxSize.Exact.psf : Double -> BoxSize */
+function Demo25_UI_Style_BoxSize_Exact_psf($0) {
+ return {a1: Demo25_UI_Style_BoxSize_psf($0), a2: Demo25_UI_Style_BoxSize_psf($0)};
+}
+
+/* Demo25.UI.Style.BoxSize.psf : Double -> BoxSizeUnit */
+function Demo25_UI_Style_BoxSize_psf($0) {
+ return {h: 1 /* BoxSizeUnitParentSizeFraction */, a1: $0};
+}
+
+/* Demo25.UI.Style.BorderRadius.max : DensitiyIndipendentPixels -> DensitiyIndipendentPixels -> DensitiyIndipendentPixels */
+function Demo25_UI_Style_BorderRadius_max($0, $1) {
+ return Prelude_EqOrd_max_Ord_Double($0, $1);
+}
+
+/* Demo25.UI.Style.FotnWeight.fromInteger : (x : Integer) -> FontWeightInterface (cast x) => (fw : Int **
+FontWeightInterface fw) */
+function Demo25_UI_Style_FotnWeight_fromInteger($0, $1) {
+ return {a1: Number(_truncBigInt32($0)), a2: $1};
+}
+
+/* Demo25.UI.Style.DensitiyIndipendentPixels.fromInteger : Integer -> DensitiyIndipendentPixels */
+function Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger($0) {
+ return Number($0);
+}
+
+/* Demo25.UI.Style.BoxSize.Exact.dip : Double -> BoxSize */
+function Demo25_UI_Style_BoxSize_Exact_dip($0) {
+ return {a1: Demo25_UI_Style_BoxSize_dip($0), a2: Demo25_UI_Style_BoxSize_dip($0)};
+}
+
+/* Demo25.UI.Style.BoxSize.dip : Double -> BoxSizeUnit */
+function Demo25_UI_Style_BoxSize_dip($0) {
+ return {h: 0 /* BoxSizeUnitDensitiyIndipendentPixels */, a1: $0};
+}
+
+/* Demo25.UI.Style.TextStyle.defaultTextStyle : TextStyle */
+const Demo25_UI_Style_TextStyle_defaultTextStyle = __lazy(function () {
+ return {a1: Demo25_UI_Style_Font_defaultFont(), a2: Demo25_UI_Style_Color_rgb(0n, 0n, 0n), a3: 0, a4: 1.2, a5: 1};
+});
+
+/* Demo25.UI.Style.Padding.defaultPadding : Padding */
+const Demo25_UI_Style_Padding_defaultPadding = __lazy(function () {
+ return {a1: Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), a2: Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), a3: Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), a4: Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n)};
+});
+
+/* Demo25.UI.Style.Margin.defaultMargin : Margin */
+const Demo25_UI_Style_Margin_defaultMargin = __lazy(function () {
+ return {a1: Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), a2: Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), a3: Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), a4: Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n)};
+});
+
+/* Demo25.UI.Style.Font.defaultFont : Font */
+const Demo25_UI_Style_Font_defaultFont = __lazy(function () {
+ return {a1: '', a2: Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(16n), a3: Demo25_UI_Style_FotnWeight_fromInteger(400n, Number(_truncBigInt32(400n))), a4: 0};
+});
+
+/* Demo25.UI.Style.FlexStyle.defaultFlexStyle : FlexStyle */
+const Demo25_UI_Style_FlexStyle_defaultFlexStyle = __lazy(function () {
+ return {a1: Demo25_UI_Style_Margin_defaultMargin(), a2: Demo25_UI_Style_Padding_defaultPadding(), a3: Demo25_UI_Style_Border_defaultBorder(), a4: Demo25_UI_Style_Color_rgba(255n, 255n, 255n, 0.0), a5: Demo25_UI_Style_FlexGap_defaultFlexGap(), a6: 0, a7: 0, a8: 0, a9: 0.0, a10: Demo25_UI_Style_BoxSize_defaultBoxSize(), a11: Demo25_UI_Style_BoxSize_defaultBoxSize()};
+});
+
+/* Demo25.UI.Style.FlexGap.defaultFlexGap : FlexGap */
+const Demo25_UI_Style_FlexGap_defaultFlexGap = __lazy(function () {
+ return {a1: Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), a2: Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n)};
+});
+
+/* Demo25.UI.Style.BoxSize.defaultBoxSize : BoxSize */
+const Demo25_UI_Style_BoxSize_defaultBoxSize = __lazy(function () {
+ return {a1: {h: 0 /* BoxSizeUnitDensitiyIndipendentPixels */, a1: Demo25_UI_Style_BoxSize_MinBoxSizeUnitDensitiyIndipendentPixels()}, a2: {h: 0 /* BoxSizeUnitDensitiyIndipendentPixels */, a1: Demo25_UI_Style_BoxSize_MaxBoxSizeUnitDensitiyIndipendentPixels()}};
+});
+
+/* Demo25.UI.Style.BorderWidth.defaultBorderWidth : BorderWidth */
+const Demo25_UI_Style_BorderWidth_defaultBorderWidth = __lazy(function () {
+ return {a1: Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), a2: Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), a3: Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), a4: Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n)};
+});
+
+/* Demo25.UI.Style.BorderRadius.defaultBorderRadius : BorderRadius */
+const Demo25_UI_Style_BorderRadius_defaultBorderRadius = __lazy(function () {
+ return {a1: Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), a2: Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), a3: Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n), a4: Demo25_UI_Style_DensitiyIndipendentPixels_fromInteger(0n)};
+});
+
+/* Demo25.UI.Style.BorderColor.defaultBorderColor : BorderColor */
+const Demo25_UI_Style_BorderColor_defaultBorderColor = __lazy(function () {
+ return {a1: csegen_11(), a2: csegen_11(), a3: csegen_11(), a4: csegen_11()};
+});
+
+/* Demo25.UI.Style.Border.defaultBorder : Border */
+const Demo25_UI_Style_Border_defaultBorder = __lazy(function () {
+ return {a1: Demo25_UI_Style_BorderWidth_defaultBorderWidth(), a2: Demo25_UI_Style_BorderColor_defaultBorderColor(), a3: Demo25_UI_Style_BorderRadius_defaultBorderRadius()};
+});
+
+/* Demo25.UI.Style.BoxSize.MinBoxSizeUnitDensitiyIndipendentPixels : Double */
+const Demo25_UI_Style_BoxSize_MinBoxSizeUnitDensitiyIndipendentPixels = __lazy(function () {
+ return 0.0;
+});
+
+/* Demo25.UI.Style.BoxSize.MaxBoxSizeUnitDensitiyIndipendentPixels : Double */
+const Demo25_UI_Style_BoxSize_MaxBoxSizeUnitDensitiyIndipendentPixels = __lazy(function () {
+ return (1.0/0.0);
+});
+
+/* Data.Fin.== */
+function Data_Fin_x3dx3d_Eq_x28Finx20x24nx29($0, $1) {
+ return (($0===$1)?1:0);
+}
+
+/* Demo25.UI.View.case block in unfold,rec,cont */
+function Demo25_UI_View_case__unfoldx2crecx2ccont_4250($0, $1, $2, $3, $4, $5, $6, $7, $8) {
+ switch($8.h) {
+  case undefined: /* just */ {
+   switch(Prelude_EqOrd_x3dx3d_Eq_String($8.a1.a1, $4)) {
+    case 1: return $8.a1.a2.a3;
+    case 0: return $7;
+   }
+  }
+  case 0: /* nothing */ return $7;
+ }
+}
+
+/* Demo25.UI.View.6896:4240:cont */
+function Demo25_UI_View_n__6896_4240_cont($0, $1, $2, $3, $4, $5, $6, $7) {
+ return Demo25_UI_View_case__unfoldx2crecx2ccont_4250($0, $1, $2, $3, $4, $5, $6, $7, Data_SortedMap_lookup($1, $2));
+}
+
+/* Demo25.UI.View.== */
+function Demo25_UI_View_x3dx3d_Eq_Direction($0, $1) {
+ switch($0) {
+  case 0: {
+   switch($1) {
+    case 0: return 1;
+    default: return 0;
+   }
+  }
+  case 1: {
+   switch($1) {
+    case 1: return 1;
+    default: return 0;
+   }
+  }
+  default: return 0;
+ }
+}
+
+/* Demo25.UI.View./= */
+function Demo25_UI_View_x2fx3d_Eq_Direction($0, $1) {
+ switch(Demo25_UI_View_x3dx3d_Eq_Direction($0, $1)) {
+  case 1: return 0;
+  case 0: return 1;
+ }
+}
+
+/* Demo25.UI.View.OnStateFacade.(>>=) : StateFacade state -> ((state, state -> StateUpdate) -> View) -> View */
+function Demo25_UI_View_OnStateFacade_x3ex3ex3d($0, $1) {
+ return {h: 5 /* State */, a1: $0.a1, a2: $0.a2, a3: $0.a3, a4: $7 => $1({a1: $7.a2, a2: $d => ({a1: $7.a1, a2: $0.a1, a3: $0.a2, a4: $d})})};
+}
+
+/* Data.List.Extra.2647:831:h */
+function Data_List_Extra_n__2647_831_h($0, $1, $2) {
+ switch($2.h) {
+  case 0: /* nil */ return {h: 0};
+  case undefined: /* cons */ return {a1: $1($0)($2.a1), a2: Data_List_Extra_n__2647_831_h(($0+1n), $1, $2.a2)};
+ }
+}
+
+/* Data.List.Extra.mapi : (Nat -> a -> b) -> List a -> List b */
+function Data_List_Extra_mapi($0, $1) {
+ return Data_List_Extra_n__2647_831_h(0n, $0, $1);
+}
+
+/* Data.SortedMap.lookup : k -> SortedMap k v -> Maybe v */
+function Data_SortedMap_lookup($0, $1) {
+ return Prelude_Types_map_Functor_Maybe($4 => $4.a2, Data_SortedMap_Dependent_lookup($0, $1));
+}
+
+/* Data.SortedMap.insert : k -> v -> SortedMap k v -> SortedMap k v */
+function Data_SortedMap_insert($0, $1, $2) {
+ return Data_SortedMap_Dependent_insert($0, $1, $2);
+}
+
+/* Data.SortedMap.empty : Ord k => SortedMap k v */
+function Data_SortedMap_empty($0) {
+ return Data_SortedMap_Dependent_empty($0);
+}
+
+/* Data.SortedMap.Dependent.treeInsert' : Ord k => (x : k) -> v x -> Tree n k v o -> Either (Tree n k v o) (Tree n k v o,
+(k, Tree n k v o)) */
+function Data_SortedMap_Dependent_treeInsertx27($0, $1, $2, $3) {
+ switch($3.h) {
+  case 0: /* Leaf */ {
+   switch($0.a2($1)($3.a1)) {
+    case 0: return {h: 1 /* Right */, a1: {a1: {h: 0 /* Leaf */, a1: $1, a2: $2}, a2: {a1: $1, a2: {h: 0 /* Leaf */, a1: $3.a1, a2: $3.a2}}}};
+    case 1: return {h: 0 /* Left */, a1: {h: 0 /* Leaf */, a1: $1, a2: $2}};
+    case 2: return {h: 1 /* Right */, a1: {a1: {h: 0 /* Leaf */, a1: $3.a1, a2: $3.a2}, a2: {a1: $3.a1, a2: {h: 0 /* Leaf */, a1: $1, a2: $2}}}};
+   }
+  }
+  case 1: /* Branch2 */ {
+   switch($0.a5($1)($3.a2)) {
+    case 1: {
+     const $26 = Data_SortedMap_Dependent_treeInsertx27($0, $1, $2, $3.a1);
+     switch($26.h) {
+      case 0: /* Left */ return {h: 0 /* Left */, a1: {h: 1 /* Branch2 */, a1: $26.a1, a2: $3.a2, a3: $3.a3}};
+      case 1: /* Right */ return {h: 0 /* Left */, a1: {h: 2 /* Branch3 */, a1: $26.a1.a1, a2: $26.a1.a2.a1, a3: $26.a1.a2.a2, a4: $3.a2, a5: $3.a3}};
+     }
+    }
+    case 0: {
+     const $38 = Data_SortedMap_Dependent_treeInsertx27($0, $1, $2, $3.a3);
+     switch($38.h) {
+      case 0: /* Left */ return {h: 0 /* Left */, a1: {h: 1 /* Branch2 */, a1: $3.a1, a2: $3.a2, a3: $38.a1}};
+      case 1: /* Right */ return {h: 0 /* Left */, a1: {h: 2 /* Branch3 */, a1: $3.a1, a2: $3.a2, a3: $38.a1.a1, a4: $38.a1.a2.a1, a5: $38.a1.a2.a2}};
+     }
+    }
+   }
+  }
+  case 2: /* Branch3 */ {
+   switch($0.a5($1)($3.a2)) {
+    case 1: {
+     const $50 = Data_SortedMap_Dependent_treeInsertx27($0, $1, $2, $3.a1);
+     switch($50.h) {
+      case 0: /* Left */ return {h: 0 /* Left */, a1: {h: 2 /* Branch3 */, a1: $50.a1, a2: $3.a2, a3: $3.a3, a4: $3.a4, a5: $3.a5}};
+      case 1: /* Right */ return {h: 1 /* Right */, a1: {a1: {h: 1 /* Branch2 */, a1: $50.a1.a1, a2: $50.a1.a2.a1, a3: $50.a1.a2.a2}, a2: {a1: $3.a2, a2: {h: 1 /* Branch2 */, a1: $3.a3, a2: $3.a4, a3: $3.a5}}}};
+     }
+    }
+    case 0: {
+     switch($0.a5($1)($3.a4)) {
+      case 1: {
+       const $6f = Data_SortedMap_Dependent_treeInsertx27($0, $1, $2, $3.a3);
+       switch($6f.h) {
+        case 0: /* Left */ return {h: 0 /* Left */, a1: {h: 2 /* Branch3 */, a1: $3.a1, a2: $3.a2, a3: $6f.a1, a4: $3.a4, a5: $3.a5}};
+        case 1: /* Right */ return {h: 1 /* Right */, a1: {a1: {h: 1 /* Branch2 */, a1: $3.a1, a2: $3.a2, a3: $6f.a1.a1}, a2: {a1: $6f.a1.a2.a1, a2: {h: 1 /* Branch2 */, a1: $6f.a1.a2.a2, a2: $3.a4, a3: $3.a5}}}};
+       }
+      }
+      case 0: {
+       const $88 = Data_SortedMap_Dependent_treeInsertx27($0, $1, $2, $3.a5);
+       switch($88.h) {
+        case 0: /* Left */ return {h: 0 /* Left */, a1: {h: 2 /* Branch3 */, a1: $3.a1, a2: $3.a2, a3: $3.a3, a4: $3.a4, a5: $88.a1}};
+        case 1: /* Right */ return {h: 1 /* Right */, a1: {a1: {h: 1 /* Branch2 */, a1: $3.a1, a2: $3.a2, a3: $3.a3}, a2: {a1: $3.a4, a2: {h: 1 /* Branch2 */, a1: $88.a1.a1, a2: $88.a1.a2.a1, a3: $88.a1.a2.a2}}}};
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}
+
+/* Data.SortedMap.Dependent.treeInsert : Ord k => (x : k) ->
+v x -> Tree n k v o -> Either (Tree n k v o) (Tree (S n) k v o) */
+function Data_SortedMap_Dependent_treeInsert($0, $1, $2, $3) {
+ const $4 = Data_SortedMap_Dependent_treeInsertx27($0, $1, $2, $3);
+ switch($4.h) {
+  case 0: /* Left */ return {h: 0 /* Left */, a1: $4.a1};
+  case 1: /* Right */ return {h: 1 /* Right */, a1: {h: 1 /* Branch2 */, a1: $4.a1.a1, a2: $4.a1.a2.a1, a3: $4.a1.a2.a2}};
+ }
+}
+
+/* Data.SortedMap.Dependent.lookup : k -> SortedDMap k v -> Maybe (y : k ** v y) */
+function Data_SortedMap_Dependent_lookup($0, $1) {
+ switch($1.h) {
+  case 0: /* Empty */ return {h: 0};
+  case 1: /* M */ return Data_SortedMap_Dependent_treeLookup($1.a1, $0, $1.a3);
+ }
+}
+
+/* Data.SortedMap.Dependent.insert : (x : k) -> v x -> SortedDMap k v -> SortedDMap k v */
+function Data_SortedMap_Dependent_insert($0, $1, $2) {
+ switch($2.h) {
+  case 0: /* Empty */ return {h: 1 /* M */, a1: $2.a1, a2: 0n, a3: {h: 0 /* Leaf */, a1: $0, a2: $1}};
+  case 1: /* M */ {
+   const $9 = Data_SortedMap_Dependent_treeInsert($2.a1, $0, $1, $2.a3);
+   switch($9.h) {
+    case 0: /* Left */ return {h: 1 /* M */, a1: $2.a1, a2: $2.a2, a3: $9.a1};
+    case 1: /* Right */ return {h: 1 /* M */, a1: $2.a1, a2: ($2.a2+1n), a3: $9.a1};
+   }
+  }
+ }
+}
+
+/* Data.SortedMap.Dependent.empty : Ord k => SortedDMap k v */
+function Data_SortedMap_Dependent_empty($0) {
+ return {h: 0 /* Empty */, a1: $0};
+}
+
+/* Data.Ref.writeRef */
+function Data_Ref_writeRef_Ref_x24io_IORef($0, $1, $2) {
+ return $0.a2(undefined)($8 => ($1.value=$2));
+}
+
+/* Data.Ref.readRef */
+function Data_Ref_readRef_Ref_x24io_IORef($0, $1) {
+ return $0.a2(undefined)($7 => ($1.value));
+}
+
+/* Data.Ref.newRef */
+function Data_Ref_newRef_Ref_x24io_IORef($0, $1) {
+ return Data_IORef_newIORef($0, $1);
+}
+
+/* Data.IORef.newIORef : HasIO io => a -> io (IORef a) */
+function Data_IORef_newIORef($0, $1) {
+ return $0.a1.a2(undefined)(undefined)($0.a2(undefined)($10 => ({value:$1})))(m => $0.a1.a1.a2(undefined)(m));
+}
+
+
+try{__mainExpression_0()}catch(e){if(e instanceof IdrisError){console.log('ERROR: ' + e.message)}else{throw e} }
+
+    </script>
+  </body>
+</html>
