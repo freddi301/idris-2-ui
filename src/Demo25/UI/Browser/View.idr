@@ -12,6 +12,7 @@ import Demo25.UI.Browser.Style
 
 -- TODO do not attach event listneres directly to html elements, instead to root element
 -- TODO clean states after a render (remove unmounted)
+-- TODO reorder list items by key
 
 viewToElementTag : View -> String
 viewToElementTag (Text _) = "span"
@@ -104,7 +105,7 @@ namespace Root
     let oldViews = !(readRef root.views)
     let newViews = (flip mapi) views $ \index => \view => unfold empty newStates [("root", show index)] view
     writeRef root.views newViews
-    patch (update root views) root.element (Flex Col oldViews) root.element (Flex Col newViews)
+    (!((!window).document)).startViewTransition $ \_ => patch (update root views) root.element (Flex Col oldViews) root.element (Flex Col newViews)
 
   export
   create : IO Root

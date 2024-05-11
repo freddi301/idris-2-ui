@@ -85,6 +85,14 @@ export
 (.createElement) : Document -> (tag : String) -> ElementTag tag => IO (Element tag)
 (.createElement) (MakeDocument document) tag = map MakeElement $ primIO $ prim__createElement document tag
 
+%foreign "browser:lambda: (document, callback) => document.startViewTransition(() => callback()())"
+prim__startViewTransition : AnyPtr -> (() -> PrimIO ()) -> PrimIO ()
+
+export
+(.startViewTransition) : Document -> (() -> IO ()) -> IO ()
+(.startViewTransition) (MakeDocument document) callback =
+  primIO $ prim__startViewTransition document (\_ => toPrim $ callback ())
+
 export
 interface ElementTag tag => HasChildren tag where
 

@@ -2,6 +2,8 @@ module Demo25.TodoApp
 
 import Demo25.UI.View
 
+-- TODO i18n
+
 -- logic
 
 record Todo where
@@ -57,6 +59,16 @@ filterTodos Done todo = todo.isDone
 
 -- appearance
 
+data ThemeName = Dark | Light
+
+Eq ThemeName where
+  Dark == Dark = True
+  Light == Light = True
+  _ == _ = False
+
+initialTheme : ThemeName
+initialTheme = Dark
+
 record Theme where
   constructor MakeTheme
   backgroundColor : Color
@@ -66,18 +78,8 @@ record Theme where
   iconButtonTextColor : Color
   iconButtonBackgroundColor : Color
 
-lightTheme : Theme
-lightTheme = MakeTheme {
-  backgroundColor = rgb 255 255 255,
-  textColor = rgb 0 0 0,
-  activeTabUnderlineColor = rgb 150 150 200,
-  borderColor = rgb 200 200 200,
-  iconButtonTextColor = rgb 150 150 200,
-  iconButtonBackgroundColor = rgb 225 225 225
-}
-
-darkTheme : Theme
-darkTheme = MakeTheme {
+getTheme : ThemeName -> Theme
+getTheme Dark = MakeTheme {
   backgroundColor = rgb 20 20 20,
   textColor = rgb 225 225 225,
   activeTabUnderlineColor = rgb 3 169 244,
@@ -85,75 +87,86 @@ darkTheme = MakeTheme {
   iconButtonTextColor = rgb 3 169 244,
   iconButtonBackgroundColor = rgb 10 10 10
 }
+getTheme Light = MakeTheme {
+  backgroundColor = rgb 245 245 245,
+  textColor = rgb 60 60 60,
+  activeTabUnderlineColor = rgb 33 150 243,
+  borderColor = rgb 200 200 200,
+  iconButtonTextColor = rgb 33 150 243,
+  iconButtonBackgroundColor = rgb 255 255 255
+}
 
 themeContext = createContext Theme
-
-theme = darkTheme
 
 IconButton :
   { label : String } ->
   { onPress : List StateUpdate } ->
   View
-IconButton = Flex Row {
-  style = s{
-    width = dip 24,
-    height = dip 24,
-    align = Center,
-    justify = Center,
-    border = s{
-      radius = s{ all = 12 },
-      width = s{ all = 1},
-      color = s{ all = theme.borderColor }
+IconButton = do
+  theme <- themeContext
+  Flex Row {
+    style = s{
+      width = dip 24,
+      height = dip 24,
+      align = Center,
+      justify = Center,
+      border = s{
+        radius = s{ all = 12 },
+        width = s{ all = 1},
+        color = s{ all = theme.borderColor }
+      },
+      background = theme.iconButtonBackgroundColor
     },
-    background = theme.iconButtonBackgroundColor
-  },
-  press = onPress
-} [
-  Flex Row { style = s{ align = Center } } [
-    Text {
-      style = s{
-        color = theme.iconButtonTextColor,
-        userSelect = False,
-        font = s{ size = 16 }
-      }
-    } label
-  ] 
-]
+    press = onPress
+  } [
+    Flex Row { style = s{ align = Center } } [
+      Text {
+        style = s{
+          color = theme.iconButtonTextColor,
+          userSelect = False,
+          font = s{ size = 16, weight = 800 }
+        }
+      } label
+    ] 
+  ]
 
 Tab :
   { label : String } ->
   { isActive : Bool } ->
   { onPress : List StateUpdate } ->
   View
-Tab = Flex Row {
-  style = s{
-    justify = Center,
-    border = s{
-      width = s{ bottom = 4 },
-      color = s{
-        top = theme.borderColor,
-        bottom = if isActive then theme.activeTabUnderlineColor else transparent
-      }
+Tab = do
+  theme <- themeContext
+  Flex Row {
+    style = s{
+      justify = Center,
+      border = s{
+        width = s{ bottom = 4 },
+        color = s{
+          top = theme.borderColor,
+          bottom = if isActive then theme.activeTabUnderlineColor else transparent
+        }
+      },
+      margin = s{ top = 4 },
+      padding = s{ vertical = 4, horizontal = 16 }
     },
-    margin = s{ top = 4 },
-    padding = s{ vertical = 4, horizontal = 16 }
-  },
-  press = onPress
-} [
-  Text { style = s{ userSelect = False, color = theme.textColor } } label
-]
+    press = onPress
+  } [
+    Text { style = s{ userSelect = False, color = theme.textColor } } label
+  ]
 
 -- application
 
 export
 TodoApp : View
 TodoApp = do
-  -- (theme, setTheme) <- useState lightTheme
+  (themeName, setThemeName) <- useState initialTheme
+  let theme = getTheme themeName
   (todos, setTodos) <- useState initialTodos
   (todosFilter, setTodosFilter) <- useState initialTodosFilter
-  (newText, setNewText) <- useState $ the String ""
+  (newText, setNewText) <- useState $ the String "Type here"
   let filteredTodos = filter (filterTodos todosFilter) todos.list
-  let contextProviders = id -- Provider themeContext theme
+  let contextProviders = Provider themeContext theme
   contextProviders $ Flex Row {
     style = s{
       justify = Center,
@@ -181,11 +194,11 @@ TodoApp = do
       } [
         IconButton {
           label = "☀️",
-          onPress = [] -- [setTheme lightTheme]
+          onPress = [setThemeName Light]
         },
         IconButton {
           label = "🌙",
-          onPress = [] -- [setTheme darkTheme]
+          onPress = [setThemeName Dark]
         }
       ],
       Text {

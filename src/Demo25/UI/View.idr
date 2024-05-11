@@ -114,7 +114,7 @@ unfold :
 unfold contexts states path view = rec view where
   rec : View -> View
   rec (Text { style, press } content) = (Text { style = style, press = press } content)
-  rec (Input value change) = (Input value change)
+  rec (Input { style } value change) = (Input { style = style } value change)
   rec (Flex direction { style, press } children) = (Flex direction { style = style, press = press } (mapi (\index => \item => unfold contexts states (path ++ [("Flex", show index)]) item) children))
   rec (Provider identity value child) = unfold (insert identity (MakeCell value) contexts) states (path ++ [("Provider", identity)]) child
   rec (Consumer identity child) = case (lookup identity contexts) of
