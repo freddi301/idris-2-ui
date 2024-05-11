@@ -1,8 +1,19 @@
-# Idris UI
+# Idris 2 UI
 
 Make declaritve UIs in Idris 2!
 
 This library aims to provide the developer experience inspired by react native.
+
+## ROADMAP
+
+- [x] basic web devolpment
+- [x] recompile on save (manual realoda in browser still needed)
+- [ ] inspector
+- [ ] basic mobile develpment
+
+**DISCLAIMER ⚠️**
+This project is meant for inspiring production-ready packages and as a testing ground for iterations to reach the best developer experience possible.
+Iterations code is all kept, in separate packages.
 
 # Usage
 
@@ -12,6 +23,7 @@ This library aims to provide the developer experience inspired by react native.
 - open [output file](build/exec/index.html)
 
 ```idris
+
 module Demo25.Usage
 
 import Demo25.UI.View
@@ -176,12 +188,11 @@ StyledApp = Flex Col [
         }
       },
       background = rgb 0 255 0,
-      gap = s{ all = 1, col = 2, row = 3 },
-      wrap = True,
-      justify = Center,
-      align = End,
-      grow = 2,
-      -- width = dip 0.3
+      gap = s{ all = 1, col = 2, row = 3 }, -- aka css flex-gap
+      wrap = True, -- aka css flex-wrap
+      justify = Center, -- aka css justify-content
+      align = End, -- aka css self-align
+      grow = 2, -- aka css flex-grow
       width = s{ min = psf 0.2, max = psf 0.3 }, -- parent size fraction aka css percentage / 100
       height = dip 200 -- density indipendent pixels aka css pixels
     }
@@ -201,10 +212,5 @@ main = do
     RoutingApp,
     StyledApp
   ]
+
 ```
-
-# Disclaimer
-
-This project is meant as a playground to for iterations for best developer experience.
-
-Iterations code is all kept, in separate packages.

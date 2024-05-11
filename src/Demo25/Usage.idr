@@ -162,12 +162,11 @@ StyledApp = Flex Col [
         }
       },
       background = rgb 0 255 0,
-      gap = s{ all = 1, col = 2, row = 3 },
-      wrap = True,
-      justify = Center,
-      align = End,
-      grow = 2,
-      -- width = dip 0.3
+      gap = s{ all = 1, col = 2, row = 3 }, -- aka css flex-gap
+      wrap = True, -- aka css flex-wrap
+      justify = Center, -- aka css justify-content
+      align = End, -- aka css self-align
+      grow = 2, -- aka css flex-grow
       width = s{ min = psf 0.2, max = psf 0.3 }, -- parent size fraction aka css percentage / 100
       height = dip 200 -- density indipendent pixels aka css pixels
     }

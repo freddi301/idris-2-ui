@@ -1,4 +1,4 @@
-package idris-ui
+package idris-2-ui
 version = 0.1.0
 
 main = Demo25.Usage
