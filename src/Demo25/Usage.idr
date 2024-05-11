@@ -1,17 +1,3 @@
-# Idris UI
-
-Make declaritve UIs in Idris 2!
-
-This library aims to provide the developer experience inspired by react native.
-
-# Usage
-
-- [dev machine setup](DEV-MACHINE-SETUP.md)
-- run `./watch-build.sh`
-- edit [source file](src/Demo25/Usage.idr)
-- open [output file](build/exec/index.html)
-
-```idris
 module Demo25.Usage
 
 import Demo25.UI.View
@@ -194,17 +180,10 @@ main : IO ()
 main = do
   root <- Root.create
   root.render [
-    HelloWorldApp,
-    NaiveRoutingApp,
-    ComponentInstancesApp,
+    HelloWorldApp, 
+    NaiveRoutingApp, 
+    ComponentInstancesApp, 
     SimpleTodosApp,
     RoutingApp,
     StyledApp
   ]
-```
-
-# Disclaimer
-
-This project is meant as a playground to for iterations for best developer experience.
-
-Iterations code is all kept, in separate packages.
