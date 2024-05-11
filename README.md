@@ -4,18 +4,20 @@ Make declaritve UIs in Idris 2!
 
 This library aims to provide the developer experience inspired by react native.
 
-## ROADMAP
+# ROADMAP
 
 - [x] basic web devolpment
-- [x] recompile on save (manual realoda in browser still needed)
+- [x] recompile on save (manual reload in browser is still needed)
 - [ ] inspector
-- [ ] basic mobile develpment
+- [ ] basic mobile development
 
-**DISCLAIMER ⚠️**
+**[⚠️ DISCLAIMER ⚠️]**
+
 This project is meant for inspiring production-ready packages and as a testing ground for iterations to reach the best developer experience possible.
+
 Iterations code is all kept, in separate packages.
 
-## TODO APP
+# TODO APP
 
 | [try it online](https://freddi301.github.io/idris-2-ui/src/Demo25/doc/todo.html) | [source](src/Demo25/TodoApp.idr) |
 | -------------------------------------------------------------------------------- | -------------------------------- |
