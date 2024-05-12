@@ -17,7 +17,7 @@ import Demo25.UI.Browser.Style
 viewToElementTag : View -> String
 viewToElementTag (Text _) = "span"
 viewToElementTag (Input _ _) = "input"
-viewToElementTag (Flex _ _) = "div"
+viewToElementTag (Flex _) = "div"
 viewToElementTag _ = ?h2
 
 indexMaybe : Nat -> List a -> Maybe a
@@ -33,30 +33,17 @@ parameters (update : List StateUpdate -> IO ())
     element.onclick_set $ \event => update press
     updateTextStyle element Nothing style
     pure element
-  create (Flex direction { style, press } children) = do
-    element <- (!(!window).document).createElement "div"
-    sequence_ $ map (\view => do element.appendChild !(create view)) children
-    element.onclick_set $ \event => update press
-    updateFlexStyle element Nothing style
-    style <- element.style
-    style.set "box-sizing" "border-box"
-    style.set "display" "flex"
-    style.set "flexDirection" (case direction of Col => "column"; Row => "row")
-    style.set "borderStyle" "solid"
-    pure element
   create (Input { style } value change) = do
     element <- (!(!window).document).createElement "input"
     element.value_set value
     element.oninput_set $ \event => update (change !(!event.currentTarget).value)
     updateInputStyle element Nothing style
-    style <- element.style
-    style.set "border" "none"
-    style.set "outline" "none"
-    style.set "font-family" "inherit"
-    style.set "font-size" "16px"
-    style.set "background" "transparent"
-    style.set "padding" "0"
-    style.set "width" "100%"
+    pure element
+  create (Flex { style, press } children) = do
+    element <- (!(!window).document).createElement "div"
+    sequence_ $ map (\view => do element.appendChild !(create view)) children
+    element.onclick_set $ \event => update press
+    updateFlexStyle element Nothing style
     pure element
   create _ = ?h3
 
@@ -72,8 +59,7 @@ parameters (update : List StateUpdate -> IO ())
     if newValue /= oldValue then oldElement.value_set newValue else pure ()
     oldElement.oninput_set $ \event => update (newChange !(!event.currentTarget).value)
     updateInputStyle oldElement (Just oldStyle) newStyle
-  patch parentElement (Flex oldDirection { style = oldStyle } oldChildren) oldElement (Flex newDirection { style = newStyle, press } newChildren) = do
-    if newDirection /= oldDirection then (!oldElement.style).set "flexDirection" (case newDirection of Col => "column"; Row => "row") else pure ()
+  patch parentElement (Flex { style = oldStyle } oldChildren) oldElement (Flex { style = newStyle, press } newChildren) = do
     childrenElements <- oldElement.children
     let
       perChild : Nat -> IO ()
@@ -106,7 +92,7 @@ namespace Root
     let oldViews = !(readRef root.views)
     let newViews = (flip mapi) views $ \index => \view => unfold empty newStates [("root", show index)] view
     writeRef root.views newViews
-    (!((!window).document)).startViewTransition $ \_ => patch (update root views) root.element (Flex Col oldViews) root.element (Flex Col newViews)
+    (!((!window).document)).startViewTransition $ \_ => patch (update root views) root.element (Flex oldViews) root.element (Flex newViews)
 
   export
   create : IO Root

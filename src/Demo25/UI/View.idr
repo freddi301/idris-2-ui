@@ -28,21 +28,10 @@ data StateUpdate : Type where
   MakeStateUpdate : (path : List (String, String)) -> (identity : String) -> {auto context : Context identity} -> content @{context} -> StateUpdate
 
 public export
-data Direction : Type where
-  Row : Direction
-  Col : Direction
-
-export
-Eq Direction where
-  (==) Row Row = True
-  (==) Col Col = True
-  (==) _ _ = False
-
-public export
 data View : Type where
   Text : {default defaultTextStyle style : TextStyle} -> {default [] press : List StateUpdate} -> (content : String) -> View
   Input : {default defaultInputStyle style : InputStyle} -> (value : String) -> (change : String -> List StateUpdate) -> View
-  Flex : Direction -> {default defaultFlexStyle style : FlexStyle} -> {default [] press : List StateUpdate} -> (children : List View) -> View
+  Flex : {default defaultFlexStyle style : FlexStyle} -> {default [] press : List StateUpdate} -> (children : List View) -> View
   Provider : (identity : String) -> {auto context : Context identity} -> (value : content @{context}) -> (child : View) -> View
   Consumer : (identity : String) -> {auto context : Context identity} -> (child : content @{context} -> View) -> View
   State : (identity : String) -> {auto context : Context identity} -> (initial : content @{context}) -> (render : (List (String, String), content @{context}) -> View) -> View
@@ -115,7 +104,7 @@ unfold contexts states path view = rec view where
   rec : View -> View
   rec (Text { style, press } content) = (Text { style = style, press = press } content)
   rec (Input { style } value change) = (Input { style = style } value change)
-  rec (Flex direction { style, press } children) = (Flex direction { style = style, press = press } (mapi (\index => \item => unfold contexts states (path ++ [("Flex", show index)]) item) children))
+  rec (Flex { style, press } children) = (Flex { style = style, press = press } (mapi (\index => \item => unfold contexts states (path ++ [("Flex", show index)]) item) children))
   rec (Provider identity value child) = unfold (insert identity (MakeCell value) contexts) states (path ++ [("Provider", identity)]) child
   rec (Consumer identity child) = case (lookup identity contexts) of
     (Just (_ ** MakeCell content)) => unfold contexts states (path ++ [("Consumer", identity)]) (child (believe_me content))

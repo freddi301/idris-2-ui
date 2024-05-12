@@ -456,11 +456,23 @@ namespace BoxSize
     BoxSize
   s { min, max } = MakeBoxSize { minimum = min, maximum = max }
 
+namespace FlexDirection
+
+  public export
+  data FlexDirection = Row | Col
+
+  export
+  Eq FlexDirection where
+    Row == Row = True
+    Col == Col = True
+    _ == _ = False
+
 namespace FlexStyle
 
   public export
   record FlexStyle where
     constructor MakeFlexStyle
+    direction : FlexDirection
     margin : Margin
     padding : Padding
     border : Border
@@ -476,6 +488,7 @@ namespace FlexStyle
   export
   defaultFlexStyle : FlexStyle
   defaultFlexStyle = MakeFlexStyle {
+    direction = Col,
     margin = defaultMargin,
     padding = defaultPadding,
     border = defaultBorder,
@@ -491,6 +504,7 @@ namespace FlexStyle
 
   export
   s : 
+    { default defaultFlexStyle.direction direction : FlexDirection } ->
     { default defaultFlexStyle.margin margin : Margin } ->
     { default defaultFlexStyle.padding padding : Padding } ->
     { default defaultFlexStyle.border border : Border } ->
@@ -504,4 +518,4 @@ namespace FlexStyle
     { default defaultFlexStyle.height height : BoxSize } ->
     FlexStyle
   s { margin, padding, border, background, gap, wrap, justify, align, grow, width, height } =
-    MakeFlexStyle {margin = margin, padding = padding, border = border, background = background, gap = gap, wrap = wrap, justify = justify, align = align, grow = grow, width = width, height = height}
+    MakeFlexStyle { direction = direction, margin = margin, padding = padding, border = border, background = background, gap = gap, wrap = wrap, justify = justify, align = align, grow = grow, width = width, height = height}

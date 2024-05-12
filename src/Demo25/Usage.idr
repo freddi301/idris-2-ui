@@ -9,6 +9,21 @@ import Demo25.TodoApp
 
 HelloWorldApp = Text "Hello World"
 
+--- Component instances
+
+Counter : { default 1 step : Int } -> View
+Counter = do
+  (count, setCount) <- useState $ the Int 0
+  Flex { style = s{ direction = Row } } [
+    Text "\{show count}",
+    Text { press = [setCount $ count + step] } "+\{show step}"
+  ]
+
+ComponentInstancesApp = Flex { style = s{ direction = Col } } [
+  Counter,
+  Counter { step = 2 }
+]
+
 --- Naive Routing
 
 namespace NaiveRouting
@@ -27,44 +42,29 @@ namespace NaiveRouting
   NaiveRoutingApp : View
   NaiveRoutingApp = do
     (currentRoute, setCurrentRoute) <- useState HomeRoute
-    Flex Col [
-      Flex Row [
-        Text {press = [setCurrentRoute HomeRoute]} "Home",
-        Text {press = [setCurrentRoute AboutRoute]} "About"
+    Flex { style = s{ direction = Col } } [
+      Flex { style = s{ direction = Row } } [
+        Text { press = [setCurrentRoute HomeRoute] } "Home",
+        Text { press = [setCurrentRoute AboutRoute] } "About"
       ],
       matchRoute currentRoute
     ]
 
---- Component instances
-
-Counter : {default 1 step : Int} -> View
-Counter = do
-  (count, setCount) <- useState (the Int 0)
-  Flex Row [
-    Text "\{show count}",
-    Text {press = [setCount(count + step)]} "+\{show step}"
-  ]
-
-ComponentInstancesApp = Flex Col [
-  Counter,
-  Counter {step = 2}
-]
-
 --- Simple todos
 
 SimpleTodosApp = do
-  (text, setText) <- useState (the String "")
-  (todos, setTodos) <- useState (the (List String) [])
+  (text, setText) <- useState $ the String ""
+  (todos, setTodos) <- useState $ the (List String) []
   let addTodo = [
     setTodos (text :: todos),
     setText ""
   ]
-  Flex Col [
-    Flex Row [
-      Input text (\text => [setText text]),
+  Flex { style = s{ direction = Col } } [
+    Flex { style = s{ direction = Row } } [
+      Input { value = text, change = (\text => [setText text]) },
       Text { press = addTodo } "add"
     ],
-    Flex Col $ (flip map) todos $ \todo => Text todo
+    Flex { style = s{ direction = Col } } $ (flip map) todos $ \todo => Text todo
   ]
 
 --- Routing
@@ -79,7 +79,7 @@ namespace Routing
   Link : (to : Route) -> (content : String) -> View
   Link to content = do
     navigate <- navigateContext
-    Text {press = navigate to} content
+    Text { press = navigate to } content
 
   Router : (initial : Route) -> (render: (outlet : View) -> View) -> View
   Router initial render = do
@@ -100,21 +100,21 @@ namespace Routing
     view = Text "PRODUCT \{id}"
 
   [Counters] Route where
-    view = Flex Col [
+    view = Flex { style = s{ direction = Col } } [
       Counter,
-      Counter {step = 3}
+      Counter { step = 3 }
     ]
 
   export
   RoutingApp : View
   RoutingApp = Router Home $ \outlet =>
-    Flex Col [
+    Flex { style = s{ direction = Col } } [
       Text "RoutingApp",
-      Flex Row [
+      Flex { style = s{ direction = Row } } [
         Link Home "Home",
         Link About "About",
-        Link (Product {id = "1"}) "Product (1)",
-        Link (Product {id = "2"}) "Product (2)",
+        Link (Product { id = "1" }) "Product (1)",
+        Link (Product { id = "2" }) "Product (2)",
         Link Counters "Counters"
       ],
       outlet
@@ -122,7 +122,7 @@ namespace Routing
 
 --- Styling
 
-StyledApp = Flex Col [
+StyledApp = Flex [
   Input {
     style = s{
       color = rgba 200 200 200 0.5
@@ -143,8 +143,9 @@ StyledApp = Flex Col [
       lineHeight = 2
     }
   } "Hello\nworld",
-  Flex Row {
+  Flex {
     style = s{
+      direction = Row,
       margin = s{ all = 1, vertical = 2, horizontal = 3, top = 4, right = 5, bottom = 6, left = 7 },
       padding =  s{ all = 1, vertical = 2, horizontal = 3, top = 4, right = 5, bottom = 6, left = 7 },
       border = s{

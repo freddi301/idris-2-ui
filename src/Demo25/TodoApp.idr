@@ -106,8 +106,9 @@ IconButton :
   View
 IconButton = do
   theme <- themeContext
-  Flex Row {
+  Flex {
     style = s{
+      direction = Row,
       width = dip 24,
       height = dip 24,
       align = Center,
@@ -121,7 +122,7 @@ IconButton = do
     },
     press = onPress
   } [
-    Flex Row { style = s{ align = Center } } [
+    Flex { style = s{ direction = Row, align = Center } } [
       Text {
         style = s{
           color = theme.iconButtonTextColor,
@@ -139,8 +140,9 @@ Tab :
   View
 Tab = do
   theme <- themeContext
-  Flex Row {
+  Flex {
     style = s{
+      direction = Row,
       justify = Center,
       border = s{
         width = s{ bottom = 4 },
@@ -169,15 +171,17 @@ TodoApp = do
   (newText, setNewText) <- useState $ the String ""
   let filteredTodos = filter (filterTodos todosFilter) todos.list
   let contextProviders = Provider themeContext theme
-  contextProviders $ Flex Row {
+  contextProviders $ Flex {
     style = s{
+      direction = Row,
       justify = Center,
       background = theme.backgroundColor,
       padding = s{ vertical = 16 }
     } 
   } [
-    Flex Col {
+    Flex {
       style = s {
+        direction = Col,
         border = s{
           width = s{ all = 1 },
           radius = s{ all = 8 },
@@ -186,8 +190,9 @@ TodoApp = do
         padding = s{ vertical = 8 }
       }
     } [
-       Flex Row {
+       Flex {
         style = s{
+          direction = Row,
           width = psf 1.0,
           gap = s{ col = 8 },
           justify = End,
@@ -210,8 +215,9 @@ TodoApp = do
           color = theme.textColor
         }
       } "My Todos",
-      Flex Row {
-        style = s{ 
+      Flex {
+        style = s{
+          direction = Row,
           width = psf 1.0,
           justify = Center,
           margin = s{ top = 8 }
@@ -225,8 +231,9 @@ TodoApp = do
         isActive = todosFilter == key,
         onPress = [setTodosFilter key]
       },
-      Flex Row {
+      Flex {
         style = s{
+          direction = Row,
           gap = s{ col = 16 },
           padding = s { vertical = 4, horizontal = 16 },
           border = s{
@@ -236,8 +243,8 @@ TodoApp = do
           width = psf 1.0
         }
       } [
-        Flex Row { style = s{ width = dip 24 } } [],
-        Flex Row { style = s{ padding = s{ vertical = 4 }, grow = 1 } } [
+        Flex { style = s{ direction = Row, width = dip 24 } } [],
+        Flex { style = s{ direction = Row, padding = s{ vertical = 4 }, grow = 1 } } [
           Input { 
             value = newText, 
             change = \value => [setNewText value],
@@ -255,9 +262,10 @@ TodoApp = do
           ]
         }
       ],
-      Flex Col { style = s{ width = psf 1.0 } } $ (flip map) filteredTodos $ \todo =>
-        Flex Row {
+      Flex { style = s{ direction = Col, width = psf 1.0 } } $ (flip map) filteredTodos $ \todo =>
+        Flex {
           style = s{
+            direction = Row,
             gap = s{ col = 16 },
             padding = s { vertical = 4, horizontal = 16 },
             border = s{
@@ -271,7 +279,7 @@ TodoApp = do
             label = if todo.isDone then "✔" else " ",
             onPress = [setTodos $ todos.update todo.id $ { isDone $= not } todo]
           },
-          Flex Row { style = s{ grow = 1, padding = s{ vertical = 4 } } } [
+          Flex { style = s{ direction = Row, grow = 1, padding = s{ vertical = 4 } } } [
             Text { style = s{ color = theme.textColor } } todo.text
           ],
           IconButton {

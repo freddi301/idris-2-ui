@@ -30,7 +30,7 @@ boxSizeUnitToCSSUnit (BoxSizeUnitDensitiyIndipendentPixels dip) = doubleDipToRem
 boxSizeUnitToCSSUnit (BoxSizeUnitParentSizeFraction psf) = "\{show $ psf * 100}%"
 
 export
-updateTextStyle : Element tag -> Maybe TextStyle -> TextStyle -> IO ()
+updateTextStyle : Element "span" -> Maybe TextStyle -> TextStyle -> IO ()
 updateTextStyle element oldStyle newStyle = do
   style <- element.style
   let updateStyle = updateStyleFactory oldStyle newStyle
@@ -53,19 +53,41 @@ updateTextStyle element oldStyle newStyle = do
   updateStyle (\style => style.userSelect) $ \value => do
     style.set "userSelect" $ if value then "auto" else "none"
 
+setDefaultInputStyle : Element "input" -> IO ()
+setDefaultInputStyle element = do
+  style <- element.style
+  style.set "border" "none"
+  style.set "outline" "none"
+  style.set "font-family" "inherit"
+  style.set "font-size" "16px"
+  style.set "background" "transparent"
+  style.set "padding" "0"
+  style.set "width" "100%"
+
 export
-updateInputStyle : Element tag -> Maybe InputStyle -> InputStyle -> IO ()
+updateInputStyle : Element "input" -> Maybe InputStyle -> InputStyle -> IO ()
 updateInputStyle element oldStyle newStyle = do
+  case oldStyle of Nothing => setDefaultInputStyle element; (Just _ ) => pure ()
   style <- element.style
   let updateStyle = updateStyleFactory oldStyle newStyle
   updateStyle (\style => style.color) $ \value => do
     style.set "color" $ colorToRGBA value
 
+setDefaultFlexStyle : Element "div" -> IO ()
+setDefaultFlexStyle element = do
+  style <- element.style
+  style.set "display" "flex"
+  style.set "boxSizing" "border-box"
+  style.set "borderStyle" "solid"
+
 export
-updateFlexStyle : Element tag -> Maybe FlexStyle -> FlexStyle -> IO ()
+updateFlexStyle : Element "div" -> Maybe FlexStyle -> FlexStyle -> IO ()
 updateFlexStyle element oldStyle newStyle = do
+  case oldStyle of Nothing => setDefaultFlexStyle element; (Just _ ) => pure ()
   style <- element.style
   let updateStyle = updateStyleFactory oldStyle newStyle
+  updateStyle (\style => style.direction) $ \value => do
+    style.set "flexDirection" $ case value of Col => "column"; Row => "row"
   updateStyle (\style => style.margin.top) $ \value => do
     style.set "marginTop" $ dipToRem value
   updateStyle (\style => style.margin.right) $ \value => do
