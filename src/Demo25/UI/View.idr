@@ -29,12 +29,53 @@ data StateUpdate : Type where
 
 public export
 data View : Type where
-  Text : {default defaultTextStyle style : TextStyle} -> {default [] press : List StateUpdate} -> (content : String) -> View
-  Input : {default defaultInputStyle style : InputStyle} -> (value : String) -> (change : String -> List StateUpdate) -> View
-  Flex : {default defaultFlexStyle style : FlexStyle} -> {default [] press : List StateUpdate} -> (children : List View) -> View
-  Provider : (identity : String) -> {auto context : Context identity} -> (value : content @{context}) -> (child : View) -> View
-  Consumer : (identity : String) -> {auto context : Context identity} -> (child : content @{context} -> View) -> View
-  State : (identity : String) -> {auto context : Context identity} -> (initial : content @{context}) -> (render : (List (String, String), content @{context}) -> View) -> View
+  Text :
+    { default "" key : String } ->
+    { default defaultTextStyle style : TextStyle } ->
+    { default [] press : List StateUpdate } ->
+    (content : String) ->
+    View
+  Input :
+    { default "" key : String } ->
+    { default defaultInputStyle style : InputStyle } -> 
+    (value : String) -> 
+    (change : String -> List StateUpdate) -> 
+    View
+  Flex : 
+    { default "" key : String } -> 
+    { default defaultFlexStyle style : FlexStyle } -> 
+    { default [] press : List StateUpdate } -> 
+    (children : List View) -> 
+    View
+  Provider : 
+    { default "" key : String } -> 
+    (identity : String) -> 
+    { auto context : Context identity } -> 
+    (value : content @{context}) -> 
+    (child : View) -> 
+    View
+  Consumer : 
+    { default "" key : String } -> 
+    (identity : String) -> 
+    { auto context : Context identity } -> 
+    (child : content @{context} -> View) -> 
+    View
+  State : 
+    { default "" key : String } -> 
+    (identity : String) -> 
+    { auto context : Context identity } ->
+    (initial : content @{context}) -> 
+    (render : (List (String, String), content @{context}) -> View) -> 
+    View
+
+export
+getExplicitKey : View -> String
+getExplicitKey (Text { key } _) = key
+getExplicitKey (Input { key } _  _) = key
+getExplicitKey (Flex { key } _) = key
+getExplicitKey (Provider { key } _ _ _) = key
+getExplicitKey (Consumer { key } _ _ ) = key
+getExplicitKey (State { key } _ _ _) = key
 
 public export
 data StateFacade : Type -> Type where
@@ -113,4 +154,7 @@ unfold contexts states path view = rec view where
     cont = case (lookup path states) of
       (Just (existingIdentity ** MakeCell content)) => if existingIdentity == identity then (believe_me content) else initial
       Nothing => initial
-    
+
+export
+(.map) : Functor container => container a -> (a -> b) -> container b
+(.map) = flip map

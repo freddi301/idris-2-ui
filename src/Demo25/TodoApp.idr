@@ -32,7 +32,7 @@ record Todos where
 
 (.update) : Todos -> Int -> Todo -> Todos
 (.update) todos todoId newTodo = {
-  list := (flip map) todos.list (\oldTodo => if oldTodo.id == todoId then newTodo else oldTodo)
+  list := todos.list.map $ \oldTodo => if oldTodo.id == todoId then newTodo else oldTodo
 } todos
 
 initialTodos = MakeTodos {
@@ -179,114 +179,112 @@ TodoApp = do
       padding = s{ vertical = 16 }
     } 
   } [
-    Flex {
-      style = s {
-        direction = Col,
-        border = s{
-          width = s{ all = 1 },
-          radius = s{ all = 8 },
-          color = s{ all = theme.borderColor }
-        },
-        padding = s{ vertical = 8 }
-      }
-    } [
-       Flex {
+    Flex { style = s{ direction = Col } } [
+      Flex {
         style = s{
           direction = Row,
           width = psf 1.0,
-          gap = s{ col = 8 },
           justify = End,
-          padding = s{ horizontal = 16 }
+          padding = s{ horizontal = 16 },
+          margin = s{ bottom = 16 }
         }
       } [
         IconButton {
-          label = "☀️",
-          onPress = [setThemeName Light]
-        },
-        IconButton {
-          label = "🌙",
-          onPress = [setThemeName Dark]
+          label = case themeName of Light => "☀️"; Dark => "🌙",
+          onPress = [setThemeName $ case themeName of Light => Dark; Dark => Light]
         }
       ],
-      Text {
+      Flex {
         style = s {
-          font = s{ size = 24, weight = 800 },
-          align = Center,
-          color = theme.textColor
-        }
-      } "My Todos",
-      Flex {
-        style = s{
-          direction = Row,
-          width = psf 1.0,
-          justify = Center,
-          margin = s{ top = 8 }
-        }
-      } $ (flip map) [
-        ("All", All),
-        ("Todo", NotDone),
-        ("Done", Done)
-      ] $ \(label, key) => Tab {
-        label = label,
-        isActive = todosFilter == key,
-        onPress = [setTodosFilter key]
-      },
-      Flex {
-        style = s{
-          direction = Row,
-          gap = s{ col = 16 },
-          padding = s { vertical = 4, horizontal = 16 },
+          direction = Col,
           border = s{
-            width = s{ vertical = 1 },
+            width = s{ all = 1 },
+            radius = s{ all = 8 },
             color = s{ all = theme.borderColor }
           },
-          width = psf 1.0
+          padding = s{ vertical = 8 }
         }
       } [
-        Flex { style = s{ direction = Row, width = dip 24 } } [],
-        Flex { style = s{ direction = Row, padding = s{ vertical = 4 }, grow = 1 } } [
-          Input { 
-            value = newText, 
-            change = \value => [setNewText value],
-            style = s{ color = theme.textColor }
+        Text {
+          style = s {
+            font = s{ size = 24, weight = 800 },
+            align = Center,
+            color = theme.textColor
           }
-        ],
-        IconButton {
-          label = "+",
-          onPress = [
-            setTodos $ todos.add {
-              text = newText,
-              isDone = case todosFilter of All => False; Done => True; NotDone => False
-            },
-            setNewText ""
-          ]
-        }
-      ],
-      Flex { style = s{ direction = Col, width = psf 1.0 } } $ (flip map) filteredTodos $ \todo =>
+        } "My Todos",
+        Flex {
+          style = s{
+            direction = Row,
+            width = psf 1.0,
+            justify = Center,
+            margin = s{ top = 8 }
+          }
+        } $ [
+          ("All", All),
+          ("Todo", NotDone),
+          ("Done", Done)
+        ].map $ \(label, key) => Tab {
+          label = label,
+          isActive = todosFilter == key,
+          onPress = [setTodosFilter key]
+        },
         Flex {
           style = s{
             direction = Row,
             gap = s{ col = 16 },
             padding = s { vertical = 4, horizontal = 16 },
             border = s{
-              width = s{ bottom = 1 },
+              width = s{ vertical = 1 },
               color = s{ all = theme.borderColor }
             },
             width = psf 1.0
           }
         } [
-          IconButton {
-            label = if todo.isDone then "✔" else " ",
-            onPress = [setTodos $ todos.update todo.id $ { isDone $= not } todo]
-          },
-          Flex { style = s{ direction = Row, grow = 1, padding = s{ vertical = 4 } } } [
-            Text { style = s{ color = theme.textColor } } todo.text
+          Flex { style = s{ direction = Row, width = dip 24 } } [],
+          Flex { style = s{ direction = Row, padding = s{ vertical = 4 }, grow = 1 } } [
+            Input { 
+              value = newText, 
+              change = \value => [setNewText value],
+              style = s{ color = theme.textColor }
+            }
           ],
           IconButton {
-            label = "✗",
-            onPress = [setTodos $ todos.remove todo.id]
+            label = "+",
+            onPress = [
+              setTodos $ todos.add {
+                text = newText,
+                isDone = case todosFilter of All => False; Done => True; NotDone => False
+              },
+              setNewText ""
+            ]
           }
-        ]
+        ],
+        Flex { style = s{ direction = Col, width = psf 1.0 } } $ filteredTodos.map $ \todo =>
+          Flex {
+            style = s{
+              direction = Row,
+              gap = s{ col = 16 },
+              padding = s { vertical = 4, horizontal = 16 },
+              border = s{
+                width = s{ bottom = 1 },
+                color = s{ all = theme.borderColor }
+              },
+              width = psf 1.0
+            }
+          } [
+            IconButton {
+              label = if todo.isDone then "✔" else " ",
+              onPress = [setTodos $ todos.update todo.id $ { isDone $= not } todo]
+            },
+            Flex { style = s{ direction = Row, grow = 1, padding = s{ vertical = 4 } } } [
+              Text { style = s{ color = theme.textColor } } todo.text
+            ],
+            IconButton {
+              label = "✗",
+              onPress = [setTodos $ todos.remove todo.id]
+            }
+          ]
+      ]
     ]
   ]
 

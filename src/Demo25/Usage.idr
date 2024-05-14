@@ -64,7 +64,7 @@ SimpleTodosApp = do
       Input { value = text, change = (\text => [setText text]) },
       Text { press = addTodo } "add"
     ],
-    Flex { style = s{ direction = Col } } $ (flip map) todos $ \todo => Text todo
+    Flex { style = s{ direction = Col } } $ todos.map $ \todo => Text todo
   ]
 
 --- Routing

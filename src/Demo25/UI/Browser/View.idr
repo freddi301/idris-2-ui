@@ -25,6 +25,10 @@ indexMaybe Z (head :: tail) = Just head
 indexMaybe (S i) (head :: tail) = indexMaybe i tail
 indexMaybe _ [] = Nothing
 
+orDefault : Lazy a -> Maybe a -> a
+orDefault d Nothing = d
+orDefault d (Just x) = x
+
 parameters (update : List StateUpdate -> IO ())
   create : (view : View) -> IO (Element (viewToElementTag view))
   create (Text { style, press } content) = do
