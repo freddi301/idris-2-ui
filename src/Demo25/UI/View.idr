@@ -1,16 +1,13 @@
 module Demo25.UI.View
 
-import Demo25.UI.Style
-
-import Data.SortedMap.Dependent
-import Data.SortedMap
-import Data.List.Extra
-
-import public Data.Fin
-import public Language.Reflection
 import public Demo25.UI.Style
 
-import Language.Reflection
+import public Data.Fin
+import Data.List.Extra
+import Data.SortedMap
+import Data.SortedMap.Dependent
+
+import public Language.Reflection
 import Language.Reflection.TT
 %language ElabReflection
 
