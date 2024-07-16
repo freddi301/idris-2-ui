@@ -32,7 +32,7 @@ record Todos where
 
 (.update) : Todos -> Int -> Todo -> Todos
 (.update) todos todoId newTodo = {
-  list := todos.list.map $ \oldTodo => if oldTodo.id == todoId then newTodo else oldTodo
+  list := todos.list <&> \oldTodo => if oldTodo.id == todoId then newTodo else oldTodo
 } todos
 
 initialTodos = MakeTodos {
@@ -223,7 +223,7 @@ TodoApp = do
           ("All", All),
           ("Todo", NotDone),
           ("Done", Done)
-        ].map $ \(label, key) => Tab {
+        ] <&> \(label, key) => Tab {
           label = label,
           isActive = todosFilter == key,
           onPress = [setTodosFilter key]
@@ -259,7 +259,7 @@ TodoApp = do
             ]
           }
         ],
-        Flex { style = s{ direction = Col, width = psf 1.0 } } $ filteredTodos.map $ \todo =>
+        Flex { style = s{ direction = Col, width = psf 1.0 } } $ filteredTodos <&> \todo =>
           Flex {
             style = s{
               direction = Row,

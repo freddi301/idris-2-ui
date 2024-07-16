@@ -96,7 +96,7 @@ namespace Root
     let oldViews = !(readRef root.views)
     let newViews = (flip mapi) views $ \index => \view => unfold empty newStates [("root", show index)] view
     writeRef root.views newViews
-    (!((!window).document)).startViewTransition $ \_ => patch (update root views) root.element (Flex oldViews) root.element (Flex newViews)
+    patch (update root views) root.element (Flex oldViews) root.element (Flex newViews)
 
   export
   create : IO Root

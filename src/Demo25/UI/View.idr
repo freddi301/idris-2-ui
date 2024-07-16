@@ -151,7 +151,3 @@ unfold contexts states path view = rec view where
     cont = case (lookup path states) of
       (Just (existingIdentity ** MakeCell content)) => if existingIdentity == identity then (believe_me content) else initial
       Nothing => initial
-
-export
-(.map) : Functor container => container a -> (a -> b) -> container b
-(.map) = flip map
