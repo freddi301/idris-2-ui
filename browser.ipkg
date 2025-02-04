@@ -6,4 +6,4 @@ main = Demo26.Usage
 executable = "index.html"
 sourcedir = "src"
 
-depends = contrib
+depends = contrib, network
